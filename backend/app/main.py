@@ -5,10 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-import asyncio
-
 from fastapi import FastAPI
-from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -16,7 +13,6 @@ from sqlalchemy import select
 
 from app.api import admin, auth, chat, history, mobile, recognize, stats, system
 from app.config import settings
-from app.core.detector import detector
 from app.core.exceptions import register_exception_handlers
 from app.core.llm import PROVIDER_LABELS
 from app.core.middleware import RateLimitMiddleware, RequestLogMiddleware
@@ -69,11 +65,6 @@ async def lifespan(_: FastAPI):
     await startup()
     provider = settings.active_provider
     logger.info("大模型接入：{}（{}）", PROVIDER_LABELS.get(provider, provider), provider)
-
-    # 后台预热检测模型：虫害模型 88MB，首次加载 + 图优化要十几秒。
-    # 留到第一次识别时才懒加载的话，第一个来用的农户要对着"识别中"干等；
-    # 放后台做，不阻塞启动，等真有人用时模型已经是热的。
-    asyncio.create_task(run_in_threadpool(detector.warmup))
 
     logger.info("{} v{} 启动完成，端口 {}", settings.app_name, VERSION, settings.port)
     yield

@@ -137,11 +137,11 @@ def main() -> int:
     check("置信度在 0~100", 0 <= float(rec.get("confidence") or 0) <= 100, str(rec.get("confidence")))
     check("给出了防治建议", bool(rec.get("treatment")), str(rec.get("treatment"))[:200])
     check("带可解释的诊断依据", isinstance(rec.get("reason", {}).get("features"), dict), str(rec.get("reason"))[:200])
-    # 识别链是多级的（本地模型 / 图片理解 / 启发式兜底），只要 engine 如实标了来源即可。
-    # 以前这里写死 == "heuristic"，加了真模型之后必然失败 —— 断言应该约束"字段有效"，而不是"实现细节"。
+    # 识别链只剩 图片理解 / 启发式 两级（本地 YOLO 已移除），
+    # 只要 engine 如实标了来源即可 —— 断言应该约束"字段有效"，而不是"实现细节"。
     check(
         "标注了识别引擎",
-        rec.get("engine") in {"yolov8-plant", "yolov8-insect", "glm-4v", "heuristic"},
+        rec.get("engine") in {"glm-4v", "heuristic"},
         str(rec.get("engine")),
     )
     print(f"    识别结果：{rec.get('name')} / {rec.get('category')} / 置信度 {rec.get('confidence')}%")

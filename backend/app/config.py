@@ -82,18 +82,6 @@ class Settings(BaseSettings):
     zhipu_vision_model: str = "glm-4.6v-flash"
     vision_llm_enabled: bool = True
 
-    # ---------- 本地检测模型（YOLOv8 ONNX，离线 CPU 推理）----------
-    # 权重放在 backend/data/models/ 下；该目录已被 .gitignore 排除，不进版本库。
-    # 文件缺失时检测自动降级到图片理解 / 启发式，服务照常启动。
-    models_dir: str = "./data/models"
-    plant_model_file: str = "plant_disease_yolov8n.onnx"   # 叶部病害 55 类（YOLOv8n）
-    pest_model_file: str = "insect_best.onnx"              # 农田昆虫 21 类（YOLOv8m）
-    detect_img_size: int = 640
-    plant_conf_threshold: float = 0.35
-    pest_conf_threshold: float = 0.40   # 虫害阈值略高，压掉弱响应误报
-    onnx_intra_threads: int = 2         # 单次推理的核内线程数，把并行度让给请求级并发
-    onnx_inter_threads: int = 1
-
     # ---------- 域检查门：模型之前先判断"像不像农作物"----------
     # 作用：挡掉截图 / 食物 / 人脸等域外图片被高置信度误检（实测有教室监控图被误判为虫害）
     domain_gate_enabled: bool = True

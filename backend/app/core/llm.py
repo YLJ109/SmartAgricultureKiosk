@@ -370,15 +370,24 @@ def vision_analyze_sync(image_path, lang: str = "zh-CN") -> dict[str, Any] | Non
     url = cred["base_url"].rstrip("/") + "/chat/completions"
 
     started = time.perf_counter()
+    content = ""
     try:
-        # trust_env=False 是必须的：本机 HTTPS_PROXY 指向随会话变化的本地端口，
-        # 经它转发智谱时实测约一半请求会失败；直连稳定。
-        with httpx.Client(timeout=settings.ai_timeout_seconds * 2, trust_env=False) as client:
-            resp = client.post(url, json=payload, headers=headers)
-        if resp.status_code >= 400:
-            logger.warning("图片理解失败 status={} body={}", resp.status_code, resp.text[:200])
-            return None
-        content = (resp.json().get("choices") or [{}])[0].get("message", {}).get("content", "")
+        for attempt in (0, 1, 2):
+            # trust_env=False 是必须的：本机 HTTPS_PROXY 指向随会话变化的本地端口，
+            # 经它转发智谱时实测约一半请求会失败；直连稳定。
+            with httpx.Client(timeout=settings.ai_timeout_seconds * 2, trust_env=False) as client:
+                resp = client.post(url, json=payload, headers=headers)
+            if resp.status_code in _RETRYABLE and attempt < 2:
+                # 图片理解现在是识别链的主力，被上游限流（1305）时干等不如多试两次：
+                # 退避 2s / 5s 实测能吃掉相当一部分瞬时限流。
+                logger.info("图片理解遇 {} 限流，第 {} 次重试", resp.status_code, attempt + 1)
+                time.sleep(2 if attempt == 0 else 5)
+                continue
+            if resp.status_code >= 400:
+                logger.warning("图片理解失败 status={} body={}", resp.status_code, resp.text[:200])
+                return None
+            content = (resp.json().get("choices") or [{}])[0].get("message", {}).get("content", "")
+            break
     except Exception as exc:
         logger.warning("图片理解请求异常：{}", exc)
         return None

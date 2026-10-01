@@ -36,7 +36,6 @@ from loguru import logger
 from app.config import settings
 from app.core import knowledge
 from app.core import llm
-from app.core.detector import GENERIC_PEST, detector
 
 # ---------- 阈值 ----------
 _MAX_SIDE = 160            # 分析分辨率，越大越慢；160 已足够稳定
@@ -377,63 +376,6 @@ def _reason(features: dict, plant_ratio: float, engine: str, **extra) -> dict:
     return reason
 
 
-def _result_from_model(hit, engine: str, lang: str, features: dict, plant_ratio: float) -> dict[str, Any] | None:
-    """本地 ONNX 模型的检出 -> 出参。
-
-    模型报的是它训练时的类名，在 detector 里已经映射到知识库 key，所以症状/防治/用药
-    仍然由知识库（多语言校对过的内容）提供 —— 模型只负责"看到什么、在哪里"。
-    """
-    boxes = [b.as_dict() for b in hit.boxes]
-    confidence = round(hit.confidence * 100, 1)
-    reason = _reason(
-        features, plant_ratio, engine,
-        model_label=hit.label,
-        model_confidence=round(hit.confidence, 4),
-    )
-
-    # 确属害虫但知识库暂无对应条目：只报「虫害」大类 + 通用处置。
-    # 硬套成别的虫名会开出完全不对的药（例如把蝗虫当蚜虫治）。
-    if hit.class_key == GENERIC_PEST:
-        res = _category_only_result("pest", lang, reason, features, boxes)
-        res["confidence"] = confidence
-        res["severity"] = _severity_of(hit.confidence)
-        res["engine"] = engine
-        res["matched"] = True
-        res["is_reference"] = False
-        res["cause"] = knowledge.pick(
-            {
-                "zh-CN": f"模型在照片中检出了害虫（{hit.label}），但该虫种暂未收录具体防治方案，请按虫害通用办法处理或咨询农技员。",
-                "en-US": f"A pest was detected ({hit.label}), but no specific control plan is on file for this species yet.",
-            },
-            lang,
-        )
-        return res
-
-    cls = knowledge.class_index().get(hit.class_key)
-    if not cls:
-        return None
-
-    localized = knowledge.localize_class(cls, lang)
-    return {
-        "category": localized["category"],
-        "class_key": localized["key"],
-        "name": localized["name"],
-        "crop": localized["crop"],
-        "latin": localized["latin"],
-        "confidence": confidence,
-        "severity": localized["severity"],
-        "symptoms": localized["symptoms"],
-        "cause": localized["cause"],
-        "treatment": localized["treatment"],
-        "pesticide": localized["pesticide"],
-        "boxes": boxes,
-        "engine": engine,
-        "reason": reason,
-        "matched": True,
-        "is_reference": False,
-    }
-
-
 def _result_from_vision(vision: dict, lang: str, features: dict, plant_ratio: float) -> dict[str, Any] | None:
     """图片理解（GLM-4V）的结论 -> 出参。
 
@@ -654,18 +596,7 @@ def analyze(image_path: str | Path, lang: str = "zh-CN") -> dict[str, Any]:
             features=features,
         )
 
-    # ---- 1/2 级：本地 ONNX 双模型（离线、CPU、毫秒级）----
-    if image_bgr is not None:
-        plant_hit, pest_hit = detector.detect_cached(image_bgr)
-        for hit, engine in ((plant_hit, "yolov8-plant"), (pest_hit, "yolov8-insect")):
-            if not hit.boxes:
-                continue
-            result = _result_from_model(hit, engine, lang, features, plant_ratio)
-            if result:
-                logger.info("{} 命中：{} conf={:.3f}", engine, hit.label, hit.confidence)
-                return result
-
-    # ---- 3 级：图片理解（智谱 GLM-4V，需联网）----
+    # ---- 1 级：图片理解（智谱 GLM-4.6V，需联网）----
     vision = llm.vision_analyze_sync(image_path, lang)
     if vision:
         result = _result_from_vision(vision, lang, features, plant_ratio)
@@ -673,7 +604,7 @@ def analyze(image_path: str | Path, lang: str = "zh-CN") -> dict[str, Any]:
             logger.info("图片理解命中：{}", vision.get("name"))
             return result
 
-    # ---- 4 级：启发式兜底（永远可用）----
+    # ---- 2 级：启发式兜底（永远可用）----
     return _heuristic_analyze(pixels, w, h, features, lang, plant_ratio)
 
 
