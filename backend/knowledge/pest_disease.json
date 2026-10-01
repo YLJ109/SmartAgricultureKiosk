@@ -519,6 +519,633 @@
       }
     },
     {
+      "key": "apple_black_rot",
+      "category": "disease",
+      "crop": "苹果",
+      "latin": "Botryosphaeria obtusa",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.08, 0.5],
+        "chlorosis_ratio": [0.04, 0.3],
+        "spot_density": [0.35, 1.0],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.02, 0.2]
+      },
+      "weights": { "necrosis_ratio": 3, "spot_density": 3, "chlorosis_ratio": 1 },
+      "keywords": ["苹果", "黑腐", "蛙眼", "僵果", "溃疡"],
+      "name": { "zh-CN": "苹果黑腐病", "en-US": "Apple black rot" },
+      "symptoms": {
+        "zh-CN": ["叶片先出现紫色小点，扩大成边缘紫褐、中央灰褐的\"蛙眼状\"斑", "果实出现褐色腐烂，后期干缩成黑色僵果挂在树上", "枝干形成红褐色溃疡斑，树皮开裂"],
+        "en-US": ["Purple flecks enlarge into 'frog-eye' spots with purple-brown rims and grey centres", "Fruit rots brown and shrivels into black mummies that stay on the tree", "Reddish-brown cankers form on branches and the bark cracks"]
+      },
+      "cause": {
+        "zh-CN": "由葡萄座腔菌引起。高温高湿、树势衰弱、虫伤和日灼伤口多时发病重；僵果和枝干溃疡是主要越冬菌源。",
+        "en-US": "Caused by Botryosphaeria obtusa. Favoured by warm humid weather, weak trees and sunburn or insect wounds; mummified fruit and cankers carry the fungus over winter."
+      },
+      "treatment": {
+        "zh-CN": ["及时摘除僵果、剪掉溃疡枝并带出园外烧毁", "增施有机肥、合理负载，恢复树势", "雨季前开始保护性用药，15 天一次", "防治食心虫、吉丁虫，减少伤口"],
+        "en-US": ["Pick off mummified fruit and prune out cankers, then burn them off-site", "Apply organic manure and thin the crop load to restore vigour", "Start protective sprays before the rainy season, every 15 days", "Control fruit borers and bark beetles to reduce wounds"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 2000 倍液", "代森锰锌 600 倍液（保护性）", "甲基硫菌灵 800 倍液"],
+        "en-US": ["Difenoconazole 1:2000", "Mancozeb 1:600 (protective)", "Thiophanate-methyl 1:800"]
+      }
+    },
+    {
+      "key": "apple_cedar_rust",
+      "category": "disease",
+      "crop": "苹果",
+      "latin": "Gymnosporangium juniperi-virginianae",
+      "severity": "medium",
+      "signature": {
+        "chlorosis_ratio": [0.08, 0.4],
+        "necrosis_ratio": [0.03, 0.22],
+        "spot_density": [0.2, 0.7],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.06]
+      },
+      "weights": { "chlorosis_ratio": 3, "spot_density": 2, "necrosis_ratio": 2 },
+      "keywords": ["苹果", "锈病", "赤星病", "桧柏", "橙黄"],
+      "name": { "zh-CN": "苹果锈病", "en-US": "Apple cedar rust" },
+      "symptoms": {
+        "zh-CN": ["叶正面出现橙黄色圆形斑，表面稍隆起", "后期病斑中央生出黑色小点，边缘产生淡黄色晕圈", "叶背对应位置长出黄色管状锈孢子器，像一撮小胡须"],
+        "en-US": ["Bright orange-yellow circular spots with a slightly raised surface on the upper leaf", "Dark dots appear in the centre of spots, ringed by a pale halo", "Yellow tube-like spore horns form on the matching lower surface, like tiny whiskers"]
+      },
+      "cause": {
+        "zh-CN": "由山田胶锈菌引起，属**转主寄生**：冬季在桧柏等柏科植物上越冬，春季孢子随风飘到苹果上侵染。果园附近柏树多、春季多雨时发病重。",
+        "en-US": "Caused by Gymnosporangium rusts, which are heteroecious: they overwinter on junipers and their spores blow to apple in spring. Severe where junipers grow nearby and springs are wet."
+      },
+      "treatment": {
+        "zh-CN": ["铲除果园周围 5 公里内的桧柏，或春季在柏树上喷药断掉菌源", "苹果萌芽期至幼果期是防侵染关键期", "雨前抢喷保护性药剂，雨后补喷治疗性药剂", "适当疏枝，加快叶面干燥"],
+        "en-US": ["Remove junipers within about 5 km, or spray the junipers in spring to break the cycle", "The key window is from bud break to young fruit", "Spray protectants before rain and a curative after", "Thin the canopy so leaves dry faster"]
+      },
+      "pesticide": {
+        "zh-CN": ["三唑酮 1500 倍液", "苯醚甲环唑 2000 倍液", "氟硅唑 4000 倍液"],
+        "en-US": ["Triadimefon 1:1500", "Difenoconazole 1:2000", "Flusilazole 1:4000"]
+      }
+    },
+    {
+      "key": "maize_gray_leaf_spot",
+      "category": "disease",
+      "crop": "玉米",
+      "latin": "Cercospora zeae-maydis",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.1, 0.55],
+        "chlorosis_ratio": [0.05, 0.3],
+        "spot_density": [0.35, 1.0],
+        "whitish_ratio": [0.02, 0.12],
+        "purple_ratio": [0.0, 0.04]
+      },
+      "weights": { "necrosis_ratio": 3, "spot_density": 3, "chlorosis_ratio": 1 },
+      "keywords": ["玉米", "灰斑", "矩形斑", "叶脉"],
+      "name": { "zh-CN": "玉米灰斑病", "en-US": "Maize grey leaf spot" },
+      "symptoms": {
+        "zh-CN": ["叶片出现灰褐色长矩形病斑，两端平截、受叶脉限制", "病斑沿叶脉平行扩展，多个连片后叶片大面积枯死", "潮湿时病斑背面可见灰白色霉层"],
+        "en-US": ["Greyish-brown rectangular lesions with square ends, bounded by leaf veins", "Lesions run parallel to the veins and merge, killing large leaf areas", "Grey-white mould appears on the underside in humid weather"]
+      },
+      "cause": {
+        "zh-CN": "由玉蜀黍尾孢引起。高温高湿（25~30℃）、多雨多露、密植郁闭时流行很快，病残体和种子可带菌。",
+        "en-US": "Caused by Cercospora zeae-maydis. Spreads fast under warm humid conditions (25-30 C) with frequent rain and dew, especially in dense stands; survives in residue and seed."
+      },
+      "treatment": {
+        "zh-CN": ["收获后深翻灭茬，清除田间病残体", "选用抗病品种，合理密植", "大喇叭口期至抽雄期是防治关键期", "增施钾肥、避免偏施氮肥"],
+        "en-US": ["Plough in residue after harvest to bury the inoculum", "Use resistant hybrids and avoid over-dense planting", "The critical window is from the whorl stage to tasselling", "Apply enough potassium and avoid excess nitrogen"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 1500 倍液", "吡唑醚菌酯 1500 倍液", "代森锰锌 600 倍液（保护性）"],
+        "en-US": ["Difenoconazole 1:1500", "Pyraclostrobin 1:1500", "Mancozeb 1:600 (protective)"]
+      }
+    },
+    {
+      "key": "maize_common_rust",
+      "category": "disease",
+      "crop": "玉米",
+      "latin": "Puccinia sorghi",
+      "severity": "medium",
+      "signature": {
+        "chlorosis_ratio": [0.06, 0.35],
+        "necrosis_ratio": [0.04, 0.3],
+        "spot_density": [0.3, 1.0],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "spot_density": 3, "chlorosis_ratio": 2, "necrosis_ratio": 2 },
+      "keywords": ["玉米", "锈病", "孢子堆", "褐色粉末"],
+      "name": { "zh-CN": "玉米锈病", "en-US": "Maize common rust" },
+      "symptoms": {
+        "zh-CN": ["叶片正反面散生褐色圆形或长圆形疱斑（夏孢子堆）", "疱斑表皮破裂后散出褐色粉末，手摸会沾上", "后期疱斑变为黑色（冬孢子堆），叶片提早枯黄"],
+        "en-US": ["Scattered brown round-to-oval pustules on both leaf surfaces", "Pustules rupture and release brown powder that rubs off on your fingers", "Later they turn black and leaves yellow and dry prematurely"]
+      },
+      "cause": {
+        "zh-CN": "由高粱柄锈菌引起。温暖湿润、昼夜温差大、结露时间长时流行；孢子可随气流远距离传播。",
+        "en-US": "Caused by Puccinia sorghi. Favoured by warm humid weather with large day-night temperature swings and long dew periods; spores travel long distances on the wind."
+      },
+      "treatment": {
+        "zh-CN": ["选用抗锈品种是最经济的办法", "清除田间病残体，减少越冬菌源", "发病初期及时用药，7~10 天一次", "增施钾肥提高抗病力"],
+        "en-US": ["Resistant hybrids are the cheapest control", "Clean up crop residue to reduce overwintering inoculum", "Spray early at first pustules, every 7-10 days", "Apply potassium to strengthen plant resistance"]
+      },
+      "pesticide": {
+        "zh-CN": ["三唑酮 1500 倍液", "戊唑醇 3000 倍液", "苯醚甲环唑 1500 倍液"],
+        "en-US": ["Triadimefon 1:1500", "Tebuconazole 1:3000", "Difenoconazole 1:1500"]
+      }
+    },
+    {
+      "key": "grape_black_rot",
+      "category": "disease",
+      "crop": "葡萄",
+      "latin": "Guignardia bidwellii",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.08, 0.5],
+        "chlorosis_ratio": [0.04, 0.28],
+        "spot_density": [0.35, 1.0],
+        "whitish_ratio": [0.01, 0.08],
+        "purple_ratio": [0.02, 0.18]
+      },
+      "weights": { "necrosis_ratio": 3, "spot_density": 3, "chlorosis_ratio": 1 },
+      "keywords": ["葡萄", "黑腐", "僵果", "圆形斑", "黑色小点"],
+      "name": { "zh-CN": "葡萄黑腐病", "en-US": "Grape black rot" },
+      "symptoms": {
+        "zh-CN": ["叶片出现褐色圆形斑，中央灰白、边缘深褐，上生黑色小点", "果实先变褐软腐，几天内干缩成黑色僵果挂在穗上", "新梢和卷须出现黑褐色长条斑"],
+        "en-US": ["Brown circular leaf spots with grey centres, dark margins and black dots", "Berries turn brown, rot softly then shrivel into black mummies on the cluster", "Dark elongated lesions appear on shoots and tendrils"]
+      },
+      "cause": {
+        "zh-CN": "由葡萄球座菌引起。梅雨或连阴雨、高温高湿（25~30℃）时爆发；僵果和病叶是主要越冬菌源，雨水飞溅传播。",
+        "en-US": "Caused by Guignardia bidwellii. Explodes during plum rains or prolonged wet spells at 25-30 C; mummified berries and fallen leaves carry it over winter and rain splash spreads it."
+      },
+      "treatment": {
+        "zh-CN": ["秋季彻底清除僵果、病叶和病枝，集中烧毁", "及时绑蔓摘心，改善通风透光", "坐果后及时套袋", "谢花后至封穗前是防治关键期，10 天一次"],
+        "en-US": ["Remove and burn mummies, infected leaves and cankers in autumn", "Tie and tip shoots promptly to open up the canopy", "Bag clusters soon after fruit set", "The key window runs from petal fall to cluster closure, every 10 days"]
+      },
+      "pesticide": {
+        "zh-CN": ["代森锰锌 600 倍液（保护性）", "苯醚甲环唑 2000 倍液", "嘧菌酯 2000 倍液"],
+        "en-US": ["Mancozeb 1:600 (protective)", "Difenoconazole 1:2000", "Azoxystrobin 1:2000"]
+      }
+    },
+    {
+      "key": "grape_esca",
+      "category": "disease",
+      "crop": "葡萄",
+      "latin": "Phaeomoniella chlamydospora 等复合病原",
+      "severity": "high",
+      "signature": {
+        "chlorosis_ratio": [0.1, 0.45],
+        "necrosis_ratio": [0.06, 0.4],
+        "spot_density": [0.15, 0.6],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.02, 0.2]
+      },
+      "weights": { "chlorosis_ratio": 3, "necrosis_ratio": 2, "purple_ratio": 2 },
+      "keywords": ["葡萄", "轮斑", "黑麻疹", "虎斑", "木质部"],
+      "name": { "zh-CN": "葡萄轮斑病（黑麻疹）", "en-US": "Grape esca (black measles)" },
+      "symptoms": {
+        "zh-CN": ["叶片脉间出现黄化或红褐色条带，边缘仍绿，呈\"虎斑\"状", "病斑逐渐坏死，叶片边缘焦枯或整叶脱落", "果穗变小、果实失水皱缩；剖开枝干可见木质部黑色坏死条纹"],
+        "en-US": ["Interveinal yellow or red-brown bands while veins stay green, giving a tiger-stripe look", "Bands die off, leaf margins scorch and leaves may drop", "Clusters stay small and berries shrivel; cutting the trunk reveals black necrosis in the wood"]
+      },
+      "cause": {
+        "zh-CN": "由多种木质部真菌复合侵染引起。主要通过修剪伤口侵入，在木质部内逐年扩展；老龄园、干旱胁迫、大伤口多的园区发病重。**目前没有能根治的药剂。**",
+        "en-US": "A complex of wood-infecting fungi that enter through pruning wounds and spread slowly inside the wood. Worse in old vineyards, under drought stress and where large cuts are made. There is no curative chemical control."
+      },
+      "treatment": {
+        "zh-CN": ["重点在预防：修剪后立即用伤口保护剂封闭切口", "避免在雨天修剪，少做大伤口", "及时挖除重病株并烧毁，不要留在地边", "加强水肥、避免干旱胁迫，延缓发病"],
+        "en-US": ["Prevention is everything: seal pruning wounds immediately", "Do not prune in wet weather and avoid large cuts", "Remove and burn severely affected vines", "Keep water and nutrition up to avoid drought stress and slow the disease"]
+      },
+      "pesticide": {
+        "zh-CN": ["无根治药剂，不要轻信\"神药\"", "修剪伤口可涂甲基硫菌灵糊剂保护"],
+        "en-US": ["No curative product exists - beware of miracle cures", "Seal pruning wounds with a thiophanate-methyl paste"]
+      }
+    },
+    {
+      "key": "grape_leaf_spot",
+      "category": "disease",
+      "crop": "葡萄",
+      "latin": "Pseudocercospora vitis",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.07, 0.45],
+        "chlorosis_ratio": [0.05, 0.3],
+        "spot_density": [0.3, 0.95],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.08]
+      },
+      "weights": { "necrosis_ratio": 3, "spot_density": 3, "chlorosis_ratio": 1 },
+      "keywords": ["葡萄", "褐斑", "多角形斑", "早期落叶"],
+      "name": { "zh-CN": "葡萄褐斑病", "en-US": "Grape leaf spot (Isariopsis)" },
+      "symptoms": {
+        "zh-CN": ["下部老叶先出现褐色多角形或不规则斑，受叶脉限制", "病斑逐渐连片，叶背可见灰褐色霉层", "叶片自下而上枯黄早落，果穗着色差"],
+        "en-US": ["Brown angular or irregular spots on lower leaves first, bounded by veins", "Spots merge and a grey-brown mould shows on the underside", "Leaves yellow and drop from the bottom up; clusters colour poorly"]
+      },
+      "cause": {
+        "zh-CN": "由葡萄假尾孢引起。高温高湿、多雨多露的年份流行重；病落叶和枝蔓上的菌丝是主要越冬菌源。",
+        "en-US": "Caused by Pseudocercospora vitis. Severe in warm wet years with frequent rain and dew; fallen leaves and cane debris carry it over winter."
+      },
+      "treatment": {
+        "zh-CN": ["秋季清扫落叶并深埋，减少越冬菌源", "及时摘心绑蔓，改善通风透光", "雨季前开始用药，10~14 天一次", "增施钾肥，防止后期脱肥早衰"],
+        "en-US": ["Collect and bury fallen leaves in autumn", "Tip and tie shoots to open the canopy", "Start spraying before the rains, every 10-14 days", "Keep potassium up to prevent late-season decline"]
+      },
+      "pesticide": {
+        "zh-CN": ["代森锰锌 600 倍液（保护性）", "苯醚甲环唑 2000 倍液", "异菌脲 1000 倍液"],
+        "en-US": ["Mancozeb 1:600 (protective)", "Difenoconazole 1:2000", "Iprodione 1:1000"]
+      }
+    },
+    {
+      "key": "citrus_greening",
+      "category": "disease",
+      "crop": "柑橘",
+      "latin": "Candidatus Liberibacter asiaticus",
+      "severity": "high",
+      "signature": {
+        "chlorosis_ratio": [0.15, 0.6],
+        "necrosis_ratio": [0.0, 0.15],
+        "spot_density": [0.05, 0.4],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "chlorosis_ratio": 4, "spot_density": 1 },
+      "keywords": ["柑橘", "黄龙病", "斑驳黄化", "木虱", "红鼻子果"],
+      "name": { "zh-CN": "柑橘黄龙病", "en-US": "Citrus greening (HLB)" },
+      "symptoms": {
+        "zh-CN": ["叶片出现斑驳状黄化：黄绿相间、左右不对称，与缺素黄化不同", "新梢抽发晚、数量少，叶片变小变硬", "果实小、畸形、着色不均，果蒂附近仍青（\"红鼻子果\"）", "树势逐年衰退，2~3 年内枯死"],
+        "en-US": ["Blotchy mottle: yellow and green patches that are asymmetric across the midrib, unlike nutrient deficiency", "New flushes are late, sparse and produce small hardened leaves", "Fruit is small, lopsided and colours unevenly, staying green near the stem", "Trees decline and die within 2-3 years"]
+      },
+      "cause": {
+        "zh-CN": "由韧皮部杆菌引起，由柑橘木虱传播，也可通过带病苗木和嫁接传播。**属检疫性病害，目前无药可治。**",
+        "en-US": "Caused by a phloem-limited bacterium spread by the Asian citrus psyllid, and also by infected nursery stock and grafting. It is a quarantine disease with no cure."
+      },
+      "treatment": {
+        "zh-CN": ["发现病株立即整株挖除烧毁，越早越好，不要抱侥幸心理", "统一防治柑橘木虱（新梢期是关键）", "只使用有检疫合格证的无病苗木", "连片园区要联防联控，单家清理效果有限"],
+        "en-US": ["Remove and burn infected trees immediately - delay makes it worse", "Control the psyllid vector on a community basis, especially at flush stages", "Plant only certified disease-free nursery stock", "Neighbouring orchards must act together; one farm alone will fail"]
+      },
+      "pesticide": {
+        "zh-CN": ["无治疗药剂，任何\"治黄龙病\"的药都不可信", "防治木虱：吡虫啉、噻虫嗪、联苯菊酯（新梢期喷）"],
+        "en-US": ["No cure exists - any product claiming to treat HLB is fraudulent", "For the psyllid: imidacloprid, thiamethoxam or bifenthrin at flush stages"]
+      }
+    },
+    {
+      "key": "peach_bacterial_spot",
+      "category": "disease",
+      "crop": "桃",
+      "latin": "Xanthomonas arboricola pv. pruni",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.05, 0.35],
+        "chlorosis_ratio": [0.05, 0.3],
+        "spot_density": [0.3, 0.9],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.02, 0.15]
+      },
+      "weights": { "spot_density": 3, "necrosis_ratio": 2, "chlorosis_ratio": 2 },
+      "keywords": ["桃", "细菌性穿孔", "穿孔", "黄晕", "疮痂"],
+      "name": { "zh-CN": "桃细菌性穿孔病", "en-US": "Peach bacterial spot" },
+      "symptoms": {
+        "zh-CN": ["叶片出现水渍状小点，后变紫褐色圆形斑，周围有黄色晕圈", "病斑干枯后脱落，叶片形成圆形穿孔，严重时落叶", "果实出现褐色凹陷斑，表面开裂，影响卖相"],
+        "en-US": ["Water-soaked flecks become purple-brown round spots with yellow halos", "Spots dry and drop out leaving shot-holes; heavy infection causes defoliation", "Fruit shows brown sunken spots that crack and ruin market value"]
+      },
+      "cause": {
+        "zh-CN": "由黄单胞菌引起。细菌在枝条病斑内越冬，春季随风雨、昆虫从气孔和伤口侵入；多雨、密植、排水不良、树势弱时发病重。",
+        "en-US": "Caused by Xanthomonas bacteria that overwinter in branch lesions and enter through stomata and wounds via rain, wind and insects. Severe in wet years, dense plantings and poorly drained, weak orchards."
+      },
+      "treatment": {
+        "zh-CN": ["清扫落叶、剪除病枝并带出园外烧毁", "雨季前开沟排水，降低园内湿度", "合理修剪，改善通风透光", "避开发病期喷灌，减少叶面结露"],
+        "en-US": ["Rake up leaves and prune out infected branches, then burn them off-site", "Open drainage ditches before the rains to lower orchard humidity", "Prune for airflow and light penetration", "Avoid overhead irrigation during disease periods"]
+      },
+      "pesticide": {
+        "zh-CN": ["噻菌铜 500 倍液", "春雷霉素 800 倍液", "中生菌素 600 倍液"],
+        "en-US": ["Thiodiazole-copper 1:500", "Kasugamycin 1:800", "Zhongshengmycin 1:600"]
+      }
+    },
+    {
+      "key": "pepper_bacterial_spot",
+      "category": "disease",
+      "crop": "辣椒",
+      "latin": "Xanthomonas euvesicatoria",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.06, 0.4],
+        "chlorosis_ratio": [0.06, 0.32],
+        "spot_density": [0.3, 0.95],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "spot_density": 3, "necrosis_ratio": 3, "chlorosis_ratio": 1 },
+      "keywords": ["辣椒", "甜椒", "细菌性斑点", "疮痂", "水渍状"],
+      "name": { "zh-CN": "辣椒细菌性斑点病", "en-US": "Pepper bacterial spot" },
+      "symptoms": {
+        "zh-CN": ["叶片出现水渍状小圆斑，后变褐、边缘有黄色晕圈", "病斑密集时叶片黄化、大量脱落，形成\"光秆\"", "果实出现褐色凸起的疮痂状斑，不深入果肉"],
+        "en-US": ["Water-soaked round spots turn brown with yellow halos", "Under heavy pressure leaves yellow and drop, exposing bare stems", "Fruit develops raised brown scabby spots that stay shallow"]
+      },
+      "cause": {
+        "zh-CN": "由黄单胞菌引起。**种子可带菌**，是远距离传播的主要途径；田间靠雨水飞溅、浇水和管理操作传播。高温高湿、风雨后暴发快。",
+        "en-US": "Caused by Xanthomonas bacteria that travel long distances on seed. In the field they spread by rain splash, irrigation and handling. Outbreaks follow hot wet weather and storms."
+      },
+      "treatment": {
+        "zh-CN": ["播种前用温汤浸种（55℃ 浸 15 分钟）或药剂拌种", "与非茄科作物轮作 2 年以上", "改喷灌为滴灌或沟灌，减少叶面飞溅", "发现中心病株及时拔除，操作后工具要消毒"],
+        "en-US": ["Treat seed before sowing: hot water at 55 C for 15 minutes, or a chemical seed dressing", "Rotate with non-solanaceous crops for 2+ years", "Switch from overhead to drip or furrow irrigation", "Rogue out the first infected plants and disinfect tools"]
+      },
+      "pesticide": {
+        "zh-CN": ["氢氧化铜 800 倍液", "噻菌铜 500 倍液", "中生菌素 600 倍液"],
+        "en-US": ["Copper hydroxide 1:800", "Thiodiazole-copper 1:500", "Zhongshengmycin 1:600"]
+      }
+    },
+    {
+      "key": "potato_early_blight",
+      "category": "disease",
+      "crop": "马铃薯",
+      "latin": "Alternaria solani",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.06, 0.45],
+        "chlorosis_ratio": [0.03, 0.3],
+        "spot_density": [0.3, 1.0],
+        "whitish_ratio": [0.0, 0.06],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "necrosis_ratio": 3, "spot_density": 3, "chlorosis_ratio": 1 },
+      "keywords": ["马铃薯", "土豆", "早疫", "轮纹", "同心"],
+      "name": { "zh-CN": "马铃薯早疫病", "en-US": "Potato early blight" },
+      "symptoms": {
+        "zh-CN": ["下部老叶先出现褐色圆形斑，斑上有明显同心轮纹", "病斑扩大后连片，叶片自下而上枯黄脱落", "块茎出现褐色凹陷斑，切开后薯肉呈褐色干腐"],
+        "en-US": ["Brown circular spots with clear concentric rings on lower leaves first", "Spots merge and leaves yellow and drop from the bottom up", "Tubers develop brown sunken lesions with dry brown rot inside"]
+      },
+      "cause": {
+        "zh-CN": "由茄链格孢菌引起。高温高湿、植株后期脱肥早衰、连作地块发病重；雨水和灌溉水飞溅传播。",
+        "en-US": "Caused by Alternaria solani. Favoured by warm humid weather, weak ageing plants and continuous cropping; spread by rain and irrigation splash."
+      },
+      "treatment": {
+        "zh-CN": ["与非茄科作物轮作 2 年以上", "清除田间病残体，收获后深翻", "增施钾肥、防止后期脱肥早衰", "发病初期开始用药，7~10 天一次"],
+        "en-US": ["Rotate with non-solanaceous crops for 2+ years", "Clear residue and plough deep after harvest", "Apply potassium to prevent late-season decline", "Spray from first symptoms, every 7-10 days"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 1500 倍液", "代森锰锌 600 倍液（保护性）", "嘧菌酯 2000 倍液"],
+        "en-US": ["Difenoconazole 1:1500", "Mancozeb 1:600 (protective)", "Azoxystrobin 1:2000"]
+      }
+    },
+    {
+      "key": "potato_late_blight",
+      "category": "disease",
+      "crop": "马铃薯",
+      "latin": "Phytophthora infestans",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.12, 0.6],
+        "chlorosis_ratio": [0.02, 0.2],
+        "spot_density": [0.1, 0.6],
+        "whitish_ratio": [0.02, 0.15],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "necrosis_ratio": 4, "whitish_ratio": 2, "spot_density": 1 },
+      "keywords": ["马铃薯", "土豆", "晚疫", "水渍状", "白霉", "疫病"],
+      "name": { "zh-CN": "马铃薯晚疫病", "en-US": "Potato late blight" },
+      "symptoms": {
+        "zh-CN": ["叶尖或叶缘出现暗绿色水渍状斑，迅速向叶内扩大", "病斑由暗绿转褐色，叶背边缘可见一圈白色霉层", "块茎出现褐色凹陷硬斑，切开薯肉呈锈褐色", "流行时整片田一周内枯死，并有腐臭味"],
+        "en-US": ["Dark green water-soaked lesions start at leaf tips or margins and spread fast", "Lesions turn brown with a ring of white mould on the underside", "Tubers get brown sunken firm lesions with rusty brown flesh inside", "In an epidemic a whole field collapses within a week and smells of rot"]
+      },
+      "cause": {
+        "zh-CN": "由致病疫霉引起。低温高湿（18~22℃、相对湿度 90% 以上）时爆发极快，一晚即可毁田；带病种薯是主要初侵染源，孢子随风雨远距离传播。",
+        "en-US": "Caused by Phytophthora infestans. Explosive under cool wet conditions (18-22 C, RH above 90%) and can destroy a field overnight; infected seed tubers are the main source and spores travel with wind and rain."
+      },
+      "treatment": {
+        "zh-CN": ["发现中心病株立即拔除并带出田外深埋，这是最要紧的一步", "选用无病种薯，切刀要消毒", "雨前抢喷保护性药剂，雨后补喷治疗性药剂", "收获前 1~2 周杀秧，避免病菌落到块茎上"],
+        "en-US": ["Rogue out and deep-bury the first infected plants immediately - this matters most", "Plant certified seed and disinfect cutting knives", "Spray a protectant before rain and a curative afterwards", "Destroy haulm 1-2 weeks before harvest to protect tubers"]
+      },
+      "pesticide": {
+        "zh-CN": ["烯酰吗啉 800 倍液", "霜脲·锰锌 600 倍液", "氟菌·霜霉威 800 倍液"],
+        "en-US": ["Dimethomorph 1:800", "Cymoxanil plus mancozeb 1:600", "Fluopicolide plus propamocarb 1:800"]
+      }
+    },
+    {
+      "key": "strawberry_leaf_scorch",
+      "category": "disease",
+      "crop": "草莓",
+      "latin": "Diplocarpon earlianum",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.07, 0.4],
+        "chlorosis_ratio": [0.04, 0.25],
+        "spot_density": [0.35, 1.0],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.05, 0.25]
+      },
+      "weights": { "spot_density": 3, "necrosis_ratio": 3, "purple_ratio": 2 },
+      "keywords": ["草莓", "叶焦", "紫褐斑", "焦枯", "褐斑"],
+      "name": { "zh-CN": "草莓叶焦病", "en-US": "Strawberry leaf scorch" },
+      "symptoms": {
+        "zh-CN": ["叶面散生紫红色小点，逐渐扩大成紫褐色不规则斑", "病斑密集时叶片呈\"焦枯\"状，但斑上无明显轮纹", "叶片边缘上卷，严重时整叶枯死"],
+        "en-US": ["Small purplish-red flecks spread and enlarge into purplish-brown irregular spots", "Heavy spotting gives a scorched look, but without concentric rings", "Leaf margins curl upward and leaves may die entirely"]
+      },
+      "cause": {
+        "zh-CN": "由草莓双盘菌引起。高温高湿、密植郁闭、通风不良时发病重；病叶在土表越冬，雨水飞溅传播。",
+        "en-US": "Caused by Diplocarpon earlianum. Severe under warm humid conditions in dense, poorly ventilated beds; infected leaves overwinter on the soil surface and splash up with rain."
+      },
+      "treatment": {
+        "zh-CN": ["及时摘除老叶病叶并带出园外销毁", "合理密植，保持行间通风", "改喷灌为滴灌，避免叶面长时间湿润", "采果后及时清园，减少越冬菌源"],
+        "en-US": ["Remove old and infected leaves and destroy them off-site", "Keep planting density sensible so rows stay ventilated", "Use drip instead of overhead irrigation to keep foliage dry", "Clean up the bed after harvest to cut overwintering inoculum"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 2000 倍液", "代森锰锌 600 倍液（保护性）", "嘧菌酯 2000 倍液"],
+        "en-US": ["Difenoconazole 1:2000", "Mancozeb 1:600 (protective)", "Azoxystrobin 1:2000"]
+      }
+    },
+    {
+      "key": "tomato_bacterial_spot",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Xanthomonas campestris pv. vesicatoria",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.05, 0.35],
+        "chlorosis_ratio": [0.05, 0.3],
+        "spot_density": [0.3, 0.95],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "spot_density": 3, "necrosis_ratio": 3, "chlorosis_ratio": 1 },
+      "keywords": ["番茄", "细菌性斑点", "雀斑", "黄晕", "水渍状"],
+      "name": { "zh-CN": "番茄细菌性斑点病", "en-US": "Tomato bacterial spot" },
+      "symptoms": {
+        "zh-CN": ["叶片出现水渍状小圆斑，后变褐、周围有黄色晕圈", "果实出现褐色凸起小斑，像\"雀斑\"，不深入果肉", "茎和叶柄出现褐色长条斑，严重时叶片大量脱落"],
+        "en-US": ["Water-soaked round spots turn brown with yellow halos", "Fruit gets small raised brown 'freckles' that stay shallow", "Dark streaks appear on stems and petioles; heavy infection defoliates plants"]
+      },
+      "cause": {
+        "zh-CN": "由黄单胞菌引起。**种子带菌**是主要初侵染源；田间靠雨水飞溅和农事操作传播，高温高湿、多风雨时暴发。",
+        "en-US": "Caused by Xanthomonas bacteria carried on seed, which is the main primary source. In the field it spreads by rain splash and handling, and explodes in hot wet windy weather."
+      },
+      "treatment": {
+        "zh-CN": ["播种前温汤浸种（55℃ 浸 15 分钟）或药剂拌种", "与非茄科作物轮作 2 年以上", "改喷灌为滴灌，避免叶面飞溅和长时间湿润", "及时摘除病叶病果，操作后工具消毒"],
+        "en-US": ["Treat seed with hot water at 55°C for 15 minutes or a chemical dressing", "Rotate with non-solanaceous crops for 2+ years", "Use drip rather than overhead irrigation", "Remove infected leaves and fruit and disinfect tools"]
+      },
+      "pesticide": {
+        "zh-CN": ["氢氧化铜 800 倍液", "噻菌铜 500 倍液", "中生菌素 600 倍液"],
+        "en-US": ["Copper hydroxide 1:800", "Thiodiazole-copper 1:500", "Zhongshengmycin 1:600"]
+      }
+    },
+    {
+      "key": "tomato_leaf_mold",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Passalora fulva",
+      "severity": "medium",
+      "signature": {
+        "chlorosis_ratio": [0.07, 0.35],
+        "necrosis_ratio": [0.04, 0.3],
+        "spot_density": [0.15, 0.6],
+        "whitish_ratio": [0.02, 0.18],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "chlorosis_ratio": 3, "whitish_ratio": 2, "necrosis_ratio": 2 },
+      "keywords": ["番茄", "叶霉", "霉层", "灰褐霉", "棚室"],
+      "name": { "zh-CN": "番茄叶霉病", "en-US": "Tomato leaf mould" },
+      "symptoms": {
+        "zh-CN": ["叶正面出现淡黄色不规则斑，边缘不明显", "叶背对应位置初生白色霉层，后转灰褐色至深褐色绒状霉", "病斑扩展后叶片卷曲干枯，由下部叶片向上蔓延"],
+        "en-US": ["Pale yellow irregular patches with indistinct margins on the upper leaf", "The matching underside first shows white mould, turning grey-brown to dark velvety", "Leaves curl and dry as spots spread upward from the bottom"]
+      },
+      "cause": {
+        "zh-CN": "由黄褐孢霉引起。**棚室高温高湿（20~25℃、相对湿度 90% 以上）时最重**，是保护地番茄的主要病害；种子和病残体可带菌。",
+        "en-US": "Caused by Passalora fulva, worst in greenhouses at 20-25°C with humidity above 90%, where it is a major disease. Seed and crop debris carry the fungus."
+      },
+      "treatment": {
+        "zh-CN": ["控湿是第一位：晴天上午放风排湿，避免叶面结露", "摘除下部病叶，改善通风透光", "棚室可用烟剂熏蒸，避免喷雾加湿", "拉秧后彻底清园，棚膜和架材消毒"],
+        "en-US": ["Humidity control comes first: ventilate on sunny mornings and avoid leaf condensation", "Remove lower infected leaves to improve airflow", "Use smoke generators in greenhouses instead of sprays that add moisture", "Clean the house thoroughly after the crop and disinfect structures"]
+      },
+      "pesticide": {
+        "zh-CN": ["嘧菌酯 2000 倍液", "苯醚甲环唑 2000 倍液", "腐霉利烟剂（棚室，傍晚熏烟）"],
+        "en-US": ["Azoxystrobin 1:2000", "Difenoconazole 1:2000", "Procymidone smoke generator (greenhouse, at dusk)"]
+      }
+    },
+    {
+      "key": "tomato_septoria",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Septoria lycopersici",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.06, 0.4],
+        "chlorosis_ratio": [0.05, 0.3],
+        "spot_density": [0.35, 1.0],
+        "whitish_ratio": [0.01, 0.1],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "spot_density": 3, "necrosis_ratio": 3, "chlorosis_ratio": 1 },
+      "keywords": ["番茄", "斑枯", "白星", "黑色小点", "壳针孢"],
+      "name": { "zh-CN": "番茄斑枯病", "en-US": "Tomato Septoria leaf spot" },
+      "symptoms": {
+        "zh-CN": ["下部老叶先出现水渍状小圆斑，后扩大成中央灰白、边缘深褐的圆形斑", "病斑上密生**黑色小点**（分生孢子器），这是与早疫病的关键区别", "病斑密集时叶片枯黄脱落，由下往上蔓延"],
+        "en-US": ["Water-soaked spots on lower leaves enlarge into circles with grey centres and dark margins", "Tiny black dots (pycnidia) pepper the spots - the key difference from early blight", "Heavy spotting yellows and drops leaves, spreading upward"]
+      },
+      "cause": {
+        "zh-CN": "由番茄壳针孢引起。高温高湿、多雨多露时发病重；病残体和野生茄科植物是越冬场所，雨水飞溅和农事操作传播。",
+        "en-US": "Caused by Septoria lycopersici. Severe in warm wet weather with frequent rain and dew; it overwinters in crop debris and wild solanaceous plants and spreads by splash and handling."
+      },
+      "treatment": {
+        "zh-CN": ["彻底清除病叶病残体，不要留在田里", "与非茄科作物轮作 2 年以上", "改喷灌为滴灌，减少叶面飞溅", "发病初期开始用药，7~10 天一次"],
+        "en-US": ["Remove infected leaves and debris completely", "Rotate with non-solanaceous crops for 2+ years", "Use drip irrigation instead of overhead to cut splash", "Spray from first symptoms, every 7-10 days"]
+      },
+      "pesticide": {
+        "zh-CN": ["代森锰锌 600 倍液（保护性）", "苯醚甲环唑 1500 倍液", "嘧菌酯 2000 倍液"],
+        "en-US": ["Mancozeb 1:600 (protective)", "Difenoconazole 1:1500", "Azoxystrobin 1:2000"]
+      }
+    },
+    {
+      "key": "tomato_target_spot",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Corynespora cassiicola",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.07, 0.42],
+        "chlorosis_ratio": [0.04, 0.28],
+        "spot_density": [0.3, 0.95],
+        "whitish_ratio": [0.0, 0.07],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "necrosis_ratio": 3, "spot_density": 3, "chlorosis_ratio": 1 },
+      "keywords": ["番茄", "靶斑", "同心轮纹", "靶心", "棒孢"],
+      "name": { "zh-CN": "番茄靶斑病", "en-US": "Tomato target spot" },
+      "symptoms": {
+        "zh-CN": ["叶片出现褐色圆形斑，有**明显的同心轮纹**，形似靶心", "病斑中央灰白至灰褐，外缘常有黄色晕圈", "病斑密集时叶片枯死，棚室中发展很快"],
+        "en-US": ["Brown circular spots with strong concentric rings, looking like a target", "Centres are grey to grey-brown with a yellow halo around the margin", "Heavy infection kills leaves and it spreads quickly in greenhouses"]
+      },
+      "cause": {
+        "zh-CN": "由多主棒孢菌引起。高温高湿（25~30℃）、棚室结露时间长、通风不良时发病重；病残体在土壤中越冬。",
+        "en-US": "Caused by Corynespora cassiicola. Favoured by 25-30°C with long leaf wetness and poor ventilation in protected crops; survives in soil debris."
+      },
+      "treatment": {
+        "zh-CN": ["控湿通风是基础，晴天上午及时放风", "摘除病叶并带出棚外销毁", "拉秧后彻底清园，土壤深翻", "发病初期用药，7 天一次，注意轮换"],
+        "en-US": ["Ventilate on sunny mornings to keep foliage dry", "Remove infected leaves and destroy them off-site", "Clean up thoroughly after the crop and plough the soil", "Spray from first symptoms every 7 days, rotating products"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 1500 倍液", "嘧菌酯 2000 倍液", "代森锰锌 600 倍液（保护性）"],
+        "en-US": ["Difenoconazole 1:1500", "Azoxystrobin 1:2000", "Mancozeb 1:600 (protective)"]
+      }
+    },
+    {
+      "key": "tomato_yellow_leaf_curl",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Tomato yellow leaf curl virus",
+      "severity": "high",
+      "signature": {
+        "chlorosis_ratio": [0.15, 0.6],
+        "necrosis_ratio": [0.0, 0.12],
+        "spot_density": [0.05, 0.35],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "chlorosis_ratio": 4, "spot_density": 1 },
+      "keywords": ["番茄", "黄化曲叶", "卷叶", "矮化", "烟粉虱", "病毒"],
+      "name": { "zh-CN": "番茄黄化曲叶病毒病", "en-US": "Tomato yellow leaf curl virus" },
+      "symptoms": {
+        "zh-CN": ["新叶变小、**叶缘向上卷曲**、叶片皱缩发硬", "叶脉间黄化，整株叶色黄绿，下部老叶反而正常", "植株明显矮化、节间缩短，**不结果或只结很小的果**"],
+        "en-US": ["New leaves are small, **curl upward** at the margins and become puckered and stiff", "Interveinal yellowing gives a pale yellow-green plant while older leaves stay normal", "Plants are stunted with short internodes and set no fruit or only tiny fruit"]
+      },
+      "cause": {
+        "zh-CN": "由番茄黄化曲叶病毒引起，**由烟粉虱传播**。病毒本身**没有药剂可治**，一旦感病只能拔除。苗期感染的损失最大。",
+        "en-US": "Caused by TYLCV and spread by the whitefly Bemisia tabaci. There is **no chemical cure** for the virus itself; infected plants must be removed. Infection at the seedling stage causes the worst losses."
+      },
+      "treatment": {
+        "zh-CN": ["**防虫网 + 防住烟粉虱是唯一有效的办法**（育苗棚就要上 60 目防虫网）", "黄板诱杀成虫，及时清除棚边杂草", "发现病株立即拔除并带出田外销毁", "选用抗病品种，苗期重点保护"],
+        "en-US": ["**Insect-proof netting plus whitefly control is the only effective measure** (use 60-mesh netting in the nursery)", "Use yellow sticky traps and clear weeds around the house", "Rogue out and destroy infected plants immediately", "Grow resistant varieties and protect the seedling stage above all"]
+      },
+      "pesticide": {
+        "zh-CN": ["病毒无药可治，任何\"治病毒\"的药剂都不可信", "防烟粉虱：噻虫嗪、吡虫啉、螺虫乙酯（重点在苗期）"],
+        "en-US": ["No product can cure the virus - any claim to do so is fraudulent", "For whitefly: thiamethoxam, imidacloprid or spirotetramat, especially at seedling stage"]
+      }
+    },
+    {
+      "key": "tomato_mosaic_virus",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Tobacco mosaic virus",
+      "severity": "medium",
+      "signature": {
+        "chlorosis_ratio": [0.12, 0.5],
+        "necrosis_ratio": [0.0, 0.18],
+        "spot_density": [0.05, 0.4],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "chlorosis_ratio": 3, "spot_density": 1 },
+      "keywords": ["番茄", "花叶", "斑驳", "畸形", "病毒", "接触传播"],
+      "name": { "zh-CN": "番茄花叶病毒病", "en-US": "Tomato mosaic virus" },
+      "symptoms": {
+        "zh-CN": ["叶片出现**黄绿相间的花叶斑驳**，深浅不匀", "新叶变窄、扭曲，叶面凹凸不平（蕨叶状）", "果实出现花脸斑或褐色坏死斑，品质下降"],
+        "en-US": ["Mottled yellow and green patches of uneven shade across the leaf", "New leaves are narrow, twisted and puckered, sometimes fern-like", "Fruit shows mottling or brown necrotic patches and loses quality"]
+      },
+      "cause": {
+        "zh-CN": "由烟草花叶病毒引起，**主要是接触传播** —— 农事操作时手、工具、衣物都能带毒，种子也可带毒。**病毒本身无药可治。**高温干旱、重茬地块发病重。",
+        "en-US": "Caused by TMV, spread mainly by contact: hands, tools and clothing carry the virus during routine work, and seed can too. There is no chemical cure. Worse in hot dry weather and continuous cropping."
+      },
+      "treatment": {
+        "zh-CN": ["**操作前用肥皂水洗手、工具消毒**（这是最有效的措施，比打药管用）", "播种前种子用 10% 磷酸三钠浸 20 分钟消毒", "发现病株立即拔除，不要用手摸了病株再摸健康株", "与非茄科作物轮作 2 年以上"],
+        "en-US": ["**Wash hands with soap and disinfect tools before working** - this beats any spray", "Soak seed in 10% trisodium phosphate for 20 minutes before sowing", "Remove infected plants at once and do not touch healthy plants afterwards", "Rotate with non-solanaceous crops for 2+ years"]
+      },
+      "pesticide": {
+        "zh-CN": ["病毒无药可治，防住接触传播才是关键", "可喷氨基寡糖素、宁南霉素作辅助缓解，但不能治病"],
+        "en-US": ["No cure exists; blocking contact spread is what matters", "Aminooligosaccharide or ningnanmycin may ease symptoms but will not cure the plant"]
+      }
+    },
+    {
       "key": "healthy",
       "category": "healthy",
       "crop": "通用",
