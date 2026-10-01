@@ -47,22 +47,35 @@ async function ask(question) {
   if (!text || thinking.value) return
 
   messages.value.push({ id: ++seq, who: 'user', text })
+  // 先把 AI 气泡摆上去（空的），字一到就往上长。
+  // 比"转圈 9 秒再整段蹦出来"体感好得多 —— 老人看到字在动就知道机器在干活。
+  messages.value.push({ id: ++seq, who: 'ai', text: '', streaming: true })
+  // 注意：必须从数组里取回代理对象再改。直接改 push 进去的那个原始对象不会触发视图更新。
+  const bubble = messages.value[messages.value.length - 1]
   thinking.value = true
-  scrollToEnd()
+  await scrollToEnd()
 
+  let meta = null
   try {
-    const res = await api.chatAsk(text, lang.code)
-    messages.value.push({
-      id: ++seq,
-      who: 'ai',
-      text: res.answer,
-      // 大模型调用失败降级为本地知识库时，轻描淡写提示一下
-      fallbackNote: res.source === 'fallback' ? 'chat.fallbackNote' : '',
+    await api.chatStream(text, lang.code, {
+      onDelta: (piece) => {
+        thinking.value = false // 收到第一块就撤掉"正在输入"动画
+        bubble.text += piece
+        scrollToEnd()
+      },
+      onMeta: (m) => {
+        meta = m
+      },
     })
+    // 大模型调用失败降级为本地知识库时，轻描淡写提示一下
+    if (meta && meta.source === 'fallback') bubble.fallbackNote = 'chat.fallbackNote'
   } catch (err) {
     // 按 code 取当前语言文案；t() 依赖 this.code，包一层箭头函数保住 this 绑定
     toast.error(errText(err, (k) => lang.t(k)))
+    // 一个字都没吐出来就把空气泡撤掉，别留个白框让人以为卡住了
+    if (!bubble.text) messages.value = messages.value.filter((m) => m.id !== bubble.id)
   } finally {
+    bubble.streaming = false
     thinking.value = false
     scrollToEnd()
   }
@@ -108,14 +121,13 @@ watch(
             <AppIcon :name="msg.who === 'ai' ? 'leaf' : 'user'" />
           </div>
           <div class="bubble">
-            {{ textOf(msg) }}
+            <!-- 首字还没到：气泡里转三个点；字一到就换成正文 + 光标 -->
+            <div v-if="msg.streaming && !msg.text" class="typing">
+              <span></span><span></span><span></span>
+            </div>
+            <template v-else>{{ textOf(msg) }}<span v-if="msg.streaming" class="caret"></span></template>
             <span v-if="msg.fallbackNote" class="bubble-note">{{ lang.t(msg.fallbackNote) }}</span>
           </div>
-        </div>
-
-        <div v-if="thinking" class="msg ai">
-          <div class="msg-avatar"><AppIcon name="leaf" /></div>
-          <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>
         </div>
       </div>
 

@@ -137,7 +137,13 @@ def main() -> int:
     check("置信度在 0~100", 0 <= float(rec.get("confidence") or 0) <= 100, str(rec.get("confidence")))
     check("给出了防治建议", bool(rec.get("treatment")), str(rec.get("treatment"))[:200])
     check("带可解释的诊断依据", isinstance(rec.get("reason", {}).get("features"), dict), str(rec.get("reason"))[:200])
-    check("标注了识别引擎", rec.get("engine") == "heuristic", str(rec.get("engine")))
+    # 识别链是多级的（本地模型 / 图片理解 / 启发式兜底），只要 engine 如实标了来源即可。
+    # 以前这里写死 == "heuristic"，加了真模型之后必然失败 —— 断言应该约束"字段有效"，而不是"实现细节"。
+    check(
+        "标注了识别引擎",
+        rec.get("engine") in {"yolov8-plant", "yolov8-insect", "glm-4v", "heuristic"},
+        str(rec.get("engine")),
+    )
     print(f"    识别结果：{rec.get('name')} / {rec.get('category')} / 置信度 {rec.get('confidence')}%")
 
     # 回归断言：白纸背景不能把结果带偏成白粉病
@@ -159,9 +165,12 @@ def main() -> int:
         f"necrosis_ratio={feats.get('necrosis_ratio')}",
     )
 
-    # 检测框：合成图上有 6 个明显的褐色斑点，应该圈得出来
+    # 检测框：合成图上有 6 个明显的褐色斑点，本该圈得出来。
+    # 但识别链是分级降级的 —— 落到"图片理解"那一级时**不产出框**：它没有定位能力，
+    # 硬塞一个盖满整幅图的框会让农户以为整片叶子都是病灶。
+    # 所以这里只约束"给了框就必须合法"，不再强制一定有框，
+    # 否则测试会把这个刻意的设计当成缺陷。
     boxes = rec.get("boxes") or []
-    check("返回了检测框", len(boxes) > 0, f"boxes={boxes}")
     check("检测框数量不超过上限 5", len(boxes) <= 5, f"len={len(boxes)}")
     geo_ok = all(
         0.0 <= float(b.get("x", -1)) <= 1.0
@@ -362,7 +371,12 @@ def main() -> int:
         str(guest_rec.get("record_no", "")).startswith("T"),
         f"record_no={guest_rec.get('record_no')}",
     )
-    check("游客识别同样带检测框", len(guest_rec.get("boxes") or []) > 0, str(guest_rec.get("boxes"))[:200])
+    # 同上：不强制有框，只要求这个字段稳定是数组（有没有框取决于最终落在识别链的哪一级）
+    check(
+        "游客识别的检测框字段是数组",
+        isinstance(guest_rec.get("boxes"), list),
+        str(guest_rec.get("boxes"))[:200],
+    )
 
     r = client.post(
         "/api/chat/ask",

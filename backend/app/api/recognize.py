@@ -15,6 +15,7 @@ from typing import Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -33,12 +34,38 @@ DbSession = Annotated[AsyncSession, Depends(get_db)]
 _CHUNK = 1024 * 1024  # 1MB
 _VALID_CHANNELS = {"local", "qrcode"}
 
-# 首页示例：图片指向 /uploads/ 占位文件，缺失也不影响前端布局，仅供演示
+# 示例图：真实病叶照片，随仓库放在 backend/static/samples/ 下（已挂载为 /static）。
+# 点"试试看"会把这四张图当成正常上传走一遍完整识别链 —— 看到的是模型真检出的结果，
+# 不是预先写死在某处的答案。
 _SAMPLES = [
-    {"key": "tomato_early_blight", "zh": "番茄早疫病叶片", "en": "Tomato early blight leaf", "crop": "番茄", "url": "/uploads/sample-tomato-early-blight.jpg"},
-    {"key": "corn_nitrogen", "zh": "玉米缺氮黄化", "en": "Corn nitrogen deficiency", "crop": "玉米", "url": "/uploads/sample-corn-nitrogen.jpg"},
-    {"key": "cucumber_powdery", "zh": "黄瓜白粉病", "en": "Cucumber powdery mildew", "crop": "黄瓜", "url": "/uploads/sample-cucumber-powdery-mildew.jpg"},
-    {"key": "wheat_aphid", "zh": "小麦蚜虫危害", "en": "Wheat aphid damage", "crop": "小麦", "url": "/uploads/sample-wheat-aphid.jpg"},
+    {
+        "key": "corn_leaf_spots",
+        "zh": "玉米叶斑病叶片",
+        "en": "Corn leaf with brown spots",
+        "crop": "玉米",
+        "url": "/static/samples/corn-leaf-spots.jpg",
+    },
+    {
+        "key": "aphid_leaf",
+        "zh": "蚜虫危害的叶片",
+        "en": "Leaf infested with aphids",
+        "crop": "小麦",
+        "url": "/static/samples/aphid-leaf.png",
+    },
+    {
+        "key": "field_3",
+        "zh": "田间叶片实拍",
+        "en": "Leaf photo from the field",
+        "crop": "通用",
+        "url": "/static/samples/field-3.webp",
+    },
+    {
+        "key": "field_4",
+        "zh": "田间叶片实拍（二）",
+        "en": "Leaf photo from the field (2)",
+        "crop": "通用",
+        "url": "/static/samples/field-4.webp",
+    },
 ]
 
 
@@ -79,7 +106,9 @@ async def recognize(
                     raise AppError(f"图片不能超过 {settings.max_upload_mb}MB", 413, "file_too_large")
                 fh.write(chunk)
 
-        result = vision.analyze(target, lang)
+        # 识别是 CPU 密集的（ONNX 推理），后面还可能阻塞在联网的图片理解上，
+        # 所以走线程池 —— 直接在事件循环里同步调用会把整台一体机的接口全卡住。
+        result = await run_in_threadpool(vision.analyze, target, lang)
         rel_path = _relative_image_path(target)
 
         # 出参字段集中构造一次，游客与正式用户共用同一套映射 ——

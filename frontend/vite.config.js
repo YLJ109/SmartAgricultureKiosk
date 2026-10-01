@@ -22,6 +22,9 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://127.0.0.1:8002', changeOrigin: true },
       '/uploads': { target: 'http://127.0.0.1:8002', changeOrigin: true },
+      // 后端的 /static 放着"试试看"用的示例病叶图。漏了这条代理，
+      // 开发态下这些图会被 Vite 当成前端路由吃掉，示例入口全是裂图。
+      '/static': { target: 'http://127.0.0.1:8002', changeOrigin: true },
     },
   },
 

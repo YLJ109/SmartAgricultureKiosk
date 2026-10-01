@@ -98,6 +98,10 @@ export const api = {
 
   // ---- 识别 ----
   samples: (lang) => http.get('/recognize/samples', { params: { lang } }),
+  /** 扫码上传：开一次性会话，返回二维码里要放的手机上传页地址 */
+  mobileSession: () => http.post('/recognize/mobile/session'),
+  /** 扫码上传：轮询手机是否已传图；ready 为真时 image_url 就是取回的图片 */
+  mobilePending: (token) => http.get('/recognize/mobile/pending', { params: { token } }),
   recognize: (file, { lang, crop = '', channel = 'local' } = {}) => {
     const form = new FormData()
     form.append('file', file)
@@ -111,6 +115,71 @@ export const api = {
   // ---- 农事问答 ----
   chatAsk: (question, lang) => http.post('/chat/ask', { question, lang }),
   chatQuicks: (lang) => http.get('/chat/quicks', { params: { lang } }),
+
+  /**
+   * 流式问答：每收到一块就回调 onDelta(text)，结束时回调 onMeta(meta)。
+   *
+   * 为什么绕开 axios 用原生 fetch：
+   *   - axios 底层的 XHR 拿不到增量响应体，只能等整段收完（一体机上是 9 秒白屏）；
+   *   - EventSource 只能发 GET，带不了 Authorization 头和请求体；
+   * 所以这里手工读 ReadableStream，按 SSE 帧边界切分。
+   */
+  chatStream: async (question, lang, { onDelta, onMeta } = {}) => {
+    const token = getToken()
+    const resp = await fetch('/api/chat/stream', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ question, lang }),
+    })
+
+    if (!resp.ok) {
+      // 与 axios 拦截器保持同一套错误形状，视图层才能用同一个 errText 取本地化文案
+      let message = ''
+      try {
+        message = ((await resp.json()) || {}).message || ''
+      } catch (e) {
+        /* 非 JSON 错误体（如网关返回的 HTML）走兜底文案 */
+      }
+      const wrapped = new Error(message || 'request failed')
+      wrapped.status = resp.status
+      wrapped.userMessage = message
+      wrapped.code = 'unknown'
+      if (resp.status === 401 && unauthorizedHandler) unauthorizedHandler()
+      throw wrapped
+    }
+
+    const reader = resp.body.getReader()
+    const decoder = new TextDecoder()
+    let buf = ''
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buf += decoder.decode(value, { stream: true })
+      let cut
+      while ((cut = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, cut).trim()
+        buf = buf.slice(cut + 1)
+        if (!line.startsWith('data:')) continue // 空行与心跳注释行直接跳过
+        const body = line.slice(5).trim()
+        if (!body || body === '[DONE]') continue
+        let evt
+        try {
+          evt = JSON.parse(body)
+        } catch (e) {
+          continue // 半截帧，等下一轮 buffer 拼完整
+        }
+        if (evt.type === 'delta') {
+          if (onDelta) onDelta(evt.text || '')
+        } else if (evt.type === 'meta') {
+          if (onMeta) onMeta(evt)
+        }
+      }
+    }
+  },
 
   // ---- 历史记录 ----
   history: (params) => http.get('/history', { params }),

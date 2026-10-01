@@ -354,21 +354,43 @@ async function main() {
     const pick = await evaluate(cdp, MEASURE)
     console.log(JSON.stringify(pick, null, 2))
 
-    // canvas 现场造一张病叶图，真实走一遍上传链路
+    // 二维码必须真的能扫。只断言"页面上有个 svg"证明不了任何事——之前的占位图形也有 svg。
+    // 所以这里把它截成 PNG，交给 scripts/decode-qr.py 用 OpenCV 真解一次码。
+    const qrBox = await evaluate(
+      cdp,
+      `(() => {
+        const el = document.querySelector('.qr-img svg')
+        if (!el) return null
+        const r = el.getBoundingClientRect()
+        return { x: r.x, y: r.y, w: r.width, h: r.height, viewBox: el.getAttribute('viewBox') }
+      })()`,
+    )
+    console.log('\n=== 二维码 ===')
+    console.log(JSON.stringify(qrBox, null, 2))
+    if (qrBox && qrBox.w > 4) {
+      const fs = require('fs')
+      const path2 = require('path')
+      const shot = await cdp.send('Page.captureScreenshot', {
+        format: 'png',
+        clip: { x: qrBox.x, y: qrBox.y, width: qrBox.w, height: qrBox.h, scale: 4 },
+      })
+      const out = path2.join(__dirname, 'qr-shot.png')
+      fs.writeFileSync(out, Buffer.from(shot.data, 'base64'))
+      console.log('已截图：' + out)
+    }
+
+    // 用后端 /static/samples/ 下那张真实病叶图上传，而不是 canvas 画的色块：
+    // 合成色块本地 YOLO 检不出，会一路降级到"图片理解"，而那一级按设计**不产出检测框**
+    // （它没有定位能力），于是"检测框渲染"这件事就永远验证不到、只能验证到空状态。
+    // 换成真实病叶图，本地模型会真检出，框渲染才有得测；顺带也验证了 /static 代理是否配好。
     const up = await evaluate(
       cdp,
       `(async () => {
         const input = document.querySelector('input[type=file]')
         if (!input) return 'FAIL: 没有 file input'
-        const c = document.createElement('canvas'); c.width = 640; c.height = 640
-        const g = c.getContext('2d')
-        g.fillStyle = '#ffffff'; g.fillRect(0,0,640,640)
-        g.fillStyle = '#40803a'; g.beginPath(); g.ellipse(320,320,285,300,0,0,Math.PI*2); g.fill()
-        g.fillStyle = '#683e20'
-        for (const [x,y,r] of [[220,240,48],[380,300,40],[300,410,44],[430,210,32],[200,400,30],[350,180,26]]) {
-          g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill()
-        }
-        const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.92))
+        const resp = await fetch('/static/samples/corn-leaf-spots.jpg')
+        if (!resp.ok) return 'FAIL: 示例图取不到，HTTP ' + resp.status
+        const blob = await resp.blob()
         const dt = new DataTransfer()
         dt.items.add(new File([blob], 'leaf.jpg', { type: 'image/jpeg' }))
         input.files = dt.files
@@ -378,8 +400,10 @@ async function main() {
     )
     console.log('\n上传：', up)
 
+    // 识别现在可能要走联网的图片理解（2~4 秒），冷启动时还要等模型加载，
+    // 所以上限给到 30 秒。原来按 15 秒写死，会在真实链路变慢时假失败。
     let ready = false
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 60; i++) {
       await sleep(500)
       const s = await evaluate(
         cdp,
@@ -514,19 +538,44 @@ async function main() {
     // 会因为没有行而空过（假通过）—— 第一版就是这么漏掉的。
     console.log('\n=== 农事顾问：造一条问答记录 ===')
     console.log('进入：', await gotoCard('农事'))
-    console.log(
-      '提问：',
-      await evaluate(
-        cdp,
-        `(async () => {
-          const q = document.querySelector('.quick-ask')
-          if (!q) return 'FAIL: 没有快捷提问按钮'
-          q.click()
-          await new Promise((r) => setTimeout(r, 3000))
-          return 'ok'
-        })()`,
-      ),
+    // 流式验证：用 MutationObserver 数气泡内容"变了几次"。
+    // 为什么不按时间判：智谱免费档的首字延迟实测在 0.4s~几十秒之间波动，
+    // 用"1.2 秒内必须出字"会把上游排队误判成"前端不是流式"。
+    // 而"整段返回"只会让 DOM 变 1 次，"逐字追加"会变很多次 —— 这个判据与网速无关。
+    const streaming = await evaluate(
+      cdp,
+      `(async () => {
+        const q = document.querySelector('.quick-ask')
+        if (!q) return { ok: false, reason: '没有快捷提问按钮' }
+        q.click()
+        await new Promise((r) => setTimeout(r, 150))
+        const list = document.querySelectorAll('.msg.ai .bubble')
+        const bubble = list.length ? list[list.length - 1] : null
+        if (!bubble) return { ok: false, reason: '没有 AI 气泡' }
+        let changes = 0
+        let lastLen = -1
+        const obs = new MutationObserver(() => {
+          const len = bubble.innerText.length
+          if (len !== lastLen) { changes += 1; lastLen = len }
+        })
+        obs.observe(bubble, { childList: true, characterData: true, subtree: true })
+        const typingAtStart = !!bubble.querySelector('.typing')
+        // 最多等 25 秒；一旦"有内容且光标消失"就说明流结束了，立即收工
+        for (let i = 0; i < 50; i++) {
+          await new Promise((r) => setTimeout(r, 500))
+          if (bubble.innerText.length > 0 && !bubble.querySelector('.caret')) break
+        }
+        obs.disconnect()
+        return {
+          ok: true,
+          changes,
+          typingAtStart,
+          finalLen: bubble.innerText.length,
+          caretLeft: !!bubble.querySelector('.caret'),
+        }
+      })()`,
     )
+    console.log('流式：', JSON.stringify(streaming))
 
     console.log('\n=== 历史记录页 ===')
     console.log('进入：', await gotoCard('历史'))
@@ -777,6 +826,11 @@ async function main() {
       ['历史页：滚动后页头吸顶', historyScroll.可滚动距离 <= 0 || historyScroll.页头吸顶 === true],
       // 问答行若还能点出详情，就会打 /api/history/{问答编号} 并 404。
       // 必须要求 行数 > 0，否则空列表下断言会假通过。
+      // 整段返回只会让 DOM 变 1 次；逐字追加会变很多次。
+      // 这个判据不依赖上游快慢，所以不会因为免费档排队而假失败。
+      ['问答：回答是逐字追加的（内容多次变化）', streaming.ok === true && streaming.changes >= 5],
+      ['问答：最终拿到了完整回答', streaming.ok === true && streaming.finalLen > 20],
+      ['问答：流结束后光标已移除', streaming.ok === true && streaming.caretLeft === false],
       ['问答页签：点整行不再打 /api/history/undefined',
         chatTab.有页签 === true && chatTab.行数 > 0 &&
         chatTab.请求含undefined === false && chatTab.详情按钮数 === 0],

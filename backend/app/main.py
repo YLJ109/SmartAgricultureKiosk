@@ -5,14 +5,19 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import asyncio
+
 from fastapi import FastAPI
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from sqlalchemy import select
 
-from app.api import admin, auth, chat, history, recognize, stats, system
+from app.api import admin, auth, chat, history, mobile, recognize, stats, system
 from app.config import settings
+from app.core.classifier import classifier
+from app.core.detector import detector
 from app.core.exceptions import register_exception_handlers
 from app.core.llm import PROVIDER_LABELS
 from app.core.middleware import RateLimitMiddleware, RequestLogMiddleware
@@ -65,6 +70,13 @@ async def lifespan(_: FastAPI):
     await startup()
     provider = settings.active_provider
     logger.info("大模型接入：{}（{}）", PROVIDER_LABELS.get(provider, provider), provider)
+
+    # 后台预热检测模型：虫害模型 88MB，首次加载 + 图优化要十几秒。
+    # 留到第一次识别时才懒加载的话，第一个来用的农户要对着"识别中"干等；
+    # 放后台做，不阻塞启动，等真有人用时模型已经是热的。
+    asyncio.create_task(run_in_threadpool(detector.warmup))
+    asyncio.create_task(run_in_threadpool(classifier.warmup))
+
     logger.info("{} v{} 启动完成，端口 {}", settings.app_name, VERSION, settings.port)
     yield
     logger.info("服务已停止")
@@ -92,11 +104,15 @@ register_exception_handlers(app)
 
 # ---------- 静态资源：上传的图片 ----------
 app.mount("/uploads", StaticFiles(directory=str(settings.upload_path)), name="uploads")
+# 内置示例图（真实病叶照片，随仓库分发）："试试看"入口点下去会真的跑一遍识别
+app.mount("/static", StaticFiles(directory=str(settings.static_path)), name="static")
 
 # ---------- 路由 ----------
 app.include_router(system.router)
 app.include_router(auth.router)
 app.include_router(recognize.router)
+# 微信扫码上传：会话 + 手机端上传页 + 取件轮询（页面在 /m，接口在 /api/recognize/mobile/*）
+app.include_router(mobile.router)
 app.include_router(chat.router)
 app.include_router(history.router)
 app.include_router(stats.router)

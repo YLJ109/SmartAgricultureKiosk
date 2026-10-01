@@ -1,15 +1,21 @@
-"""启发式视觉分析：不依赖任何深度学习模型，纯 CPU、离线可用。
+"""拍照识病主入口：真实模型优先，逐级兜底。
 
-为什么这么做
-------------
-完整方案里的 YOLOv8 病害/虫害双模型权重合计约 226MB，需要 torch + onnxruntime，
-不适合作为"开箱即跑"的默认路径。所以本项目默认走启发式：
-用颜色与纹理特征先落到「问题大类」，再与知识库的特征指纹做匹配，给出细分类候选。
+检测链（按序，前一级有可信检出就直接返回，并把用了哪一级写进 `engine`）
+----------------------------------------------------------------------
+1. **域检查门** —— 先判断画面里像不像农作物。截图、饭菜、人脸这类域外图，任何模型
+   都可能给出高置信度误检（实测：教室监控图被虫害模型判成 0.86 的玉米螟）。
+2. **叶部病害模型**（YOLOv8n ONNX，55 类）—— 本地离线、CPU、毫秒级。
+3. **农田昆虫模型**（YOLOv8m ONNX，21 类）—— 本地离线；只在病害模型没检出时才跑，
+   否则每张图都要为那 90MB 权重付出算力。
+4. **图片理解**（智谱 GLM-4V，免费视觉模型）—— 联网。前两级都没把握时才用。
+   它给出的中文病名会拿回知识库检索，命中就用知识库校对过的症状/防治/用药，
+   没命中才退回它自己的描述并标记为参考方案。
+5. **启发式颜色纹理分析** —— 纯本地最后兜底，保证断网、缺模型、无密钥时也有结果。
 
-它不假装自己是深度学习模型 —— 返回结果里带 `engine="heuristic"` 与 `reason`，
-前端会明确标注"参考方案"，避免把启发式结果当处方用。
+无论走哪一级，对外返回结构完全一致，`engine` 字段如实标明结论来自哪一级；
+前端据此决定是否标注"参考方案"，绝不把启发式结果冒充模型检出。
 
-特征定义（全部归一到 0~1）
+启发式特征定义（全部归一到 0~1）
 --------------------------
 green_ratio     绿色像素占比（健康叶肉）
 chlorosis_ratio 黄/橙失绿像素占比（缺氮、病毒病、早衰）
@@ -27,7 +33,10 @@ from typing import Any
 
 from loguru import logger
 
+from app.config import settings
 from app.core import knowledge
+from app.core import llm
+from app.core.detector import GENERIC_PEST, detector
 
 # ---------- 阈值 ----------
 _MAX_SIDE = 160            # 分析分辨率，越大越慢；160 已足够稳定
@@ -345,34 +354,307 @@ def _build_boxes(
     return boxes
 
 
-def analyze(image_path: str | Path, lang: str = "zh-CN") -> dict[str, Any]:
-    """主入口：返回可直接入库/出参的结构化识别结果。
+# ==========================================================================
+# 各级结论 -> 统一的出参结构
+# ==========================================================================
 
-    无论成功与否都返回同一套字段，调用方不需要写分支。
+def _severity_of(confidence: float) -> str:
+    """仅在没有知识库条目可依据时，用置信度折算风险档。"""
+    if confidence >= 0.75:
+        return "high"
+    if confidence >= 0.55:
+        return "medium"
+    return "low"
+
+
+def _reason(features: dict, plant_ratio: float, engine: str, **extra) -> dict:
+    reason = {
+        "features": features,
+        "plant_ratio": round(plant_ratio, 4),
+        "engine": engine,
+    }
+    reason.update(extra)
+    return reason
+
+
+#: 分类器采信门槛。0.70 + "top1 至少是 top2 的 1.8 倍"，两个条件同时满足才采信。
+#:
+#: 为什么定这么高（实测，不是拍脑袋）：
+#: 现用模型是在 PlantVillage 上训的，而那个数据集是**实验室受控拍摄**（纯色背景、单叶居中）。
+#: 拿本项目 4 张真实照片实测，它的 top1 全部落在 0.16~0.52：
+#:     aphid-leaf.png        0.162  -> 判成 Ceddar Apple Rust（错）
+#:     corn-leaf-spots.jpg   0.344  -> 判成 Tomato Late Blight（错）
+#:     field-4.webp          0.356  -> top2 是 0.325，前两名几乎并列（等于在猜）
+#:     field-3.webp          0.521  -> 最高的一张也没过 0.55
+#: 也就是说：**阈值一旦放松，它就会拿错病名去覆盖后面更可靠的图片理解**。
+#: 所以门槛设在"几乎不可能误报"的水平 —— 当前它在真实照片上基本不会被采信，
+#: 等换上田间数据训练的模型，这个门槛才会自然开始放行。
+_CLASSIFIER_MIN_SCORE = 0.70
+
+#: top1 至少要是 top2 的这么多倍。防止"38 类里挑一个稍微高一点"的瞎猜被当成结论。
+_CLASSIFIER_MIN_MARGIN = 1.8
+
+#: 这几类是"复用知识库方案"：白粉病在黄瓜 / 南瓜 / 樱桃上防治思路一致，
+#: 但终归不是同一作物的精确诊断，所以要如实标成参考方案。
+_CLASSIFIER_REUSED = {"Cherry with Powdery Mildew", "Squash with Powdery Mildew"}
+
+
+def _result_from_classifier(cls: dict[str, Any], lang: str, features: dict, plant_ratio: float) -> dict[str, Any] | None:
+    """本地整图分类器的判断 -> 出参。
+
+    它只回答"整片叶子像是什么病"，**不定位病灶**，所以 boxes 恒为空 ——
+    硬画一个盖满整幅图的框会让农户以为整片叶子都是病灶。
     """
-    try:
-        # 只解码一次：特征和检测框都基于同一份像素
-        pixels, w, h = _load_pixels(image_path)
-        features = _features_from_pixels(pixels, w, h)
-    except Exception as exc:  # 图片损坏 / 缺 Pillow / 路径不存在
-        logger.warning("视觉分析失败：{}", exc)
-        return _unknown_result(lang, reason={"error": str(exc)}, features={})
+    label = str(cls.get("label") or "")
+    score = float(cls.get("score") or 0.0)
+    top3 = cls.get("top3") or []
+    runner_up = float(top3[1]["score"]) if len(top3) > 1 else 0.0
+    margin = (score / runner_up) if runner_up > 0 else 99.0
 
-    plant_ratio = (
-        features["green_ratio"]
-        + features["chlorosis_ratio"]
-        + features["necrosis_ratio"]
-        + features["purple_ratio"]
+    if score < _CLASSIFIER_MIN_SCORE or margin < _CLASSIFIER_MIN_MARGIN:
+        # 不采信，继续往下降级。留下日志，方便换模型后复盘门槛是否还合适。
+        logger.debug(
+            "分类器分数不足，跳过：{} score={:.3f} margin={:.2f}", label, score, margin
+        )
+        return None
+
+    confidence = round(score * 100, 1)
+    reason = _reason(
+        features, plant_ratio, "classifier",
+        model_label=label,
+        model_confidence=round(score, 4),
+        top3=[f"{t['label']} {t['score']:.2f}" for t in (cls.get("top3") or [])],
     )
 
-    # 域检查门：先挡掉截图、食物、人脸等非作物照片，避免高置信度误报
-    if plant_ratio < _PLANT_MIN_RATIO:
-        return _unknown_result(
-            lang,
-            reason={"gate": "non_plant", "plant_ratio": round(plant_ratio, 4)},
-            features=features,
-        )
+    key = str(cls.get("key") or "")
+    entry = knowledge.class_index().get(key) if key else None
+    if not entry:
+        # 认得出病名、但知识库还没有对应条目：只报大类 + 通用建议，不硬套病名开药
+        result = _category_only_result("disease", lang, reason, features, [])
+        result["confidence"] = confidence
+        result["severity"] = _severity_of(score)
+        result["engine"] = "classifier"
+        result["matched"] = False
+        result["is_reference"] = True
+        return result
 
+    localized = knowledge.localize_class(entry, lang)
+    return {
+        "category": entry.get("category", "disease"),
+        "class_key": key,
+        "name": knowledge.pick(localized.get("name"), lang),
+        "confidence": confidence,
+        "severity": localized.get("severity", "medium"),
+        "symptoms": knowledge.pick_list(localized.get("symptoms"), lang),
+        "cause": knowledge.pick(localized.get("cause"), lang),
+        "treatment": knowledge.pick_list(localized.get("treatment"), lang),
+        "pesticide": knowledge.pick_list(localized.get("pesticide"), lang),
+        "boxes": [],
+        "engine": "classifier",
+        "reason": reason,
+        "matched": True,
+        "is_reference": label in _CLASSIFIER_REUSED,
+    }
+
+
+def _result_from_model(hit, engine: str, lang: str, features: dict, plant_ratio: float) -> dict[str, Any] | None:
+    """本地 ONNX 模型的检出 -> 出参。
+
+    模型报的是它训练时的类名，在 detector 里已经映射到知识库 key，所以症状/防治/用药
+    仍然由知识库（多语言校对过的内容）提供 —— 模型只负责"看到什么、在哪里"。
+    """
+    boxes = [b.as_dict() for b in hit.boxes]
+    confidence = round(hit.confidence * 100, 1)
+    reason = _reason(
+        features, plant_ratio, engine,
+        model_label=hit.label,
+        model_confidence=round(hit.confidence, 4),
+    )
+
+    # 确属害虫但知识库暂无对应条目：只报「虫害」大类 + 通用处置。
+    # 硬套成别的虫名会开出完全不对的药（例如把蝗虫当蚜虫治）。
+    if hit.class_key == GENERIC_PEST:
+        res = _category_only_result("pest", lang, reason, features, boxes)
+        res["confidence"] = confidence
+        res["severity"] = _severity_of(hit.confidence)
+        res["engine"] = engine
+        res["matched"] = True
+        res["is_reference"] = False
+        res["cause"] = knowledge.pick(
+            {
+                "zh-CN": f"模型在照片中检出了害虫（{hit.label}），但该虫种暂未收录具体防治方案，请按虫害通用办法处理或咨询农技员。",
+                "en-US": f"A pest was detected ({hit.label}), but no specific control plan is on file for this species yet.",
+            },
+            lang,
+        )
+        return res
+
+    cls = knowledge.class_index().get(hit.class_key)
+    if not cls:
+        return None
+
+    localized = knowledge.localize_class(cls, lang)
+    return {
+        "category": localized["category"],
+        "class_key": localized["key"],
+        "name": localized["name"],
+        "crop": localized["crop"],
+        "latin": localized["latin"],
+        "confidence": confidence,
+        "severity": localized["severity"],
+        "symptoms": localized["symptoms"],
+        "cause": localized["cause"],
+        "treatment": localized["treatment"],
+        "pesticide": localized["pesticide"],
+        "boxes": boxes,
+        "engine": engine,
+        "reason": reason,
+        "matched": True,
+        "is_reference": False,
+    }
+
+
+def _result_from_vision(vision: dict, lang: str, features: dict, plant_ratio: float) -> dict[str, Any] | None:
+    """图片理解（GLM-4V）的结论 -> 出参。
+
+    先拿它给出的中文病名回知识库检索：命中就整段采用知识库内容 —— 症状、防治、用药
+    都经过校对，而且天生带 6 语言；没命中才退回模型自己的描述，并降级为"参考方案"，
+    同时**丢弃它给的用药信息**（未经校验的药剂与剂量不能直接给农户当处方）。
+
+    注意这里**不产出检测框**：图片理解只回答"像是什么病"，并没有定位病灶。
+    早期版本为了"看起来有框"塞过一个盖住整幅图的框，那是误导 ——
+    农户会以为整片叶子都是病灶。框是给"看到了哪里"用的，没有就是没有。
+    """
+    name = str(vision.get("name") or "").strip()
+    cat = str(vision.get("category") or "").strip().lower()
+    if not name or cat == "unknown":
+        return None
+
+    try:
+        confidence = float(vision.get("confidence") or 0)
+    except (TypeError, ValueError):
+        confidence = 0.0
+    confidence = max(0.0, min(confidence, 100.0))
+
+    reason = _reason(
+        features, plant_ratio, "glm-4v",
+        vision_name=name,
+        vision_category=cat,
+        vision_symptoms=list(vision.get("symptoms") or []),
+        vision_model=vision.get("model"),
+        latency_ms=vision.get("latency_ms"),
+    )
+
+    hits = knowledge.search_classes(name, "zh-CN", limit=1)
+    if hits:
+        cls = knowledge.class_index().get(hits[0]["key"])
+        if cls:
+            localized = knowledge.localize_class(cls, lang)
+            return {
+                "category": localized["category"],
+                "class_key": localized["key"],
+                "name": localized["name"],
+                "crop": localized["crop"],
+                "latin": localized["latin"],
+                "confidence": confidence,
+                "severity": localized["severity"],
+                "symptoms": localized["symptoms"],
+                "cause": localized["cause"],
+                "treatment": localized["treatment"],
+                "pesticide": localized["pesticide"],
+                "boxes": [],
+                "engine": "glm-4v",
+                "reason": reason,
+                "matched": True,
+                "is_reference": False,
+            }
+
+    valid_cats = {"disease", "pest", "nutrient", "phyto", "healthy"}
+    return {
+        "category": cat if cat in valid_cats else "unknown",
+        "class_key": "",
+        "name": name,
+        "crop": "",
+        "latin": "",
+        "confidence": confidence,
+        "severity": _severity_of(confidence / 100.0),
+        "symptoms": [str(x) for x in (vision.get("symptoms") or [])][:3],
+        "cause": knowledge.pick(
+            {
+                "zh-CN": "该结论由图片理解模型给出，暂未收录进本地知识库，仅供参考。",
+                "en-US": "This came from the vision model and is not yet in the local knowledge base.",
+            },
+            lang,
+        ),
+        "treatment": [str(x) for x in (vision.get("treatment") or [])][:3],
+        "pesticide": [],
+        "boxes": [],
+        "engine": "glm-4v",
+        "reason": reason,
+        "matched": False,
+        "is_reference": True,
+    }
+
+
+def _load_bgr(image_path: str | Path):
+    """给 ONNX 模型用的 BGR 图；读不到返回 None，由上层继续降级。"""
+    try:
+        import cv2
+
+        return cv2.imread(str(image_path))
+    except Exception as exc:
+        logger.warning("OpenCV 读图失败：{}", exc)
+        return None
+
+
+def _passes_domain_gate(image_bgr, plant_ratio: float) -> tuple[bool, dict]:
+    """域检查门：这张图像不像农作物？
+
+    三个轻量特征（阈值集中在 config，均已用真实图片标定）：
+    - 植被绿占比（Hue 35~85，且有一定饱和度/亮度）
+    - 枯黄叶占比（Hue 20~35；缺氮黄化也是本系统的合法识别对象）
+    - Canny 边缘密度：截图 / UI / 文字的边缘密度明显偏高，用它挡掉
+
+    没有 opencv 时退回像素分类口径的 plant_ratio，保证这道门永远有效。
+    """
+    if not settings.domain_gate_enabled:
+        return True, {}
+    if image_bgr is None:
+        return plant_ratio >= _PLANT_MIN_RATIO, {"gate": "plant_ratio_fallback"}
+
+    import cv2
+    import numpy as np
+
+    hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    green = float(np.mean((h >= 35) & (h <= 85) & (s > 40) & (v > 50)))
+    yellow = float(np.mean((h >= 20) & (h < 35) & (s > 60) & (v > 50)))
+    edge = float(np.mean(cv2.Canny(cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY), 80, 160) > 0))
+
+    detail = {
+        "gate": "color_edge",
+        "green": round(green, 4),
+        "yellow": round(yellow, 4),
+        "edge": round(edge, 4),
+    }
+    passed = (
+        green >= settings.domain_gate_green_min or yellow >= settings.domain_gate_yellow_min
+    ) and edge <= settings.domain_gate_edge_max
+    return passed, detail
+
+
+# ==========================================================================
+# 启发式兜底（无模型 / 断网 / 无密钥时使用）
+# ==========================================================================
+
+def _heuristic_analyze(
+    pixels: list[tuple[int, int, int]],
+    w: int,
+    h: int,
+    features: dict[str, float],
+    lang: str,
+    plant_ratio: float,
+) -> dict[str, Any]:
     ranked: list[tuple[float, dict[str, Any]]] = []
     for cls in knowledge.all_classes():
         ranked.append((_score(features, cls), cls))
@@ -381,12 +663,7 @@ def analyze(image_path: str | Path, lang: str = "zh-CN") -> dict[str, Any]:
     best_score, best_cls = ranked[0]
     candidates = [{"key": c["key"], "score": round(s, 4)} for s, c in ranked[:3]]
 
-    reason = {
-        "features": features,
-        "plant_ratio": round(plant_ratio, 4),
-        "candidates": candidates,
-        "engine": "heuristic",
-    }
+    reason = _reason(features, plant_ratio, "heuristic", candidates=candidates)
 
     if best_score < _HINT_MIN_SCORE:
         # 特征不明显时只给大类，不硬报病名
@@ -417,6 +694,82 @@ def analyze(image_path: str | Path, lang: str = "zh-CN") -> dict[str, Any]:
         # 匹配分不足时前端会标注为"最接近的参考方案"
         "is_reference": best_score < _REPORT_MIN_SCORE,
     }
+
+
+# ==========================================================================
+# 主入口
+# ==========================================================================
+
+def analyze(image_path: str | Path, lang: str = "zh-CN") -> dict[str, Any]:
+    """返回可直接入库/出参的结构化识别结果。
+
+    无论成功与否都返回同一套字段，调用方不需要写分支。
+
+    注意：本函数是**同步且 CPU 密集**的（后续还可能阻塞在联网的图片理解上），
+    调用方必须把它放进线程池（FastAPI 的 run_in_threadpool），不要直接同步调用。
+    """
+    try:
+        # 只解码一次：启发式的特征和检测框都基于同一份像素
+        pixels, w, h = _load_pixels(image_path)
+        features = _features_from_pixels(pixels, w, h)
+    except Exception as exc:  # 图片损坏 / 缺 Pillow / 路径不存在
+        logger.warning("视觉分析失败：{}", exc)
+        return _unknown_result(lang, reason={"error": str(exc)}, features={})
+
+    plant_ratio = (
+        features["green_ratio"]
+        + features["chlorosis_ratio"]
+        + features["necrosis_ratio"]
+        + features["purple_ratio"]
+    )
+
+    # ---- 0 级：域检查门（放在所有模型之前）----
+    image_bgr = _load_bgr(image_path)
+    passed, gate_detail = _passes_domain_gate(image_bgr, plant_ratio)
+    if not passed:
+        logger.info("图片未通过域检查（不像农作物画面），返回未识别：{}", gate_detail)
+        return _unknown_result(
+            lang,
+            reason=_reason(features, plant_ratio, "domain_gate", **gate_detail),
+            features=features,
+        )
+
+    # ---- 1/2 级：本地 ONNX 双模型（离线、CPU、毫秒级）----
+    if image_bgr is not None:
+        plant_hit, pest_hit = detector.detect_cached(image_bgr)
+        for hit, engine in ((plant_hit, "yolov8-plant"), (pest_hit, "yolov8-insect")):
+            if not hit.boxes:
+                continue
+            result = _result_from_model(hit, engine, lang, features, plant_ratio)
+            if result:
+                logger.info("{} 命中：{} conf={:.3f}", engine, hit.label, hit.confidence)
+                return result
+
+    # ---- 3 级：本地整图分类器（离线、比联网快一个数量级，但不定位病灶）----
+    # 排在图片理解之前：能本地离线拿到的结论，没理由先去联网等几秒。
+    if image_bgr is not None:
+        from app.core.classifier import classifier  # 延迟导入，避免与 detector 的加载顺序耦合
+
+        cls = classifier.classify(image_bgr)
+        if cls:
+            result = _result_from_classifier(cls, lang, features, plant_ratio)
+            if result:
+                logger.info(
+                    "分类器命中：{} score={:.3f} -> key={}",
+                    cls.get("label"), cls.get("score") or 0.0, cls.get("key") or "(知识库暂无)",
+                )
+                return result
+
+    # ---- 4 级：图片理解（智谱 GLM-4V，需联网）----
+    vision = llm.vision_analyze_sync(image_path, lang)
+    if vision:
+        result = _result_from_vision(vision, lang, features, plant_ratio)
+        if result:
+            logger.info("图片理解命中：{}", vision.get("name"))
+            return result
+
+    # ---- 4 级：启发式兜底（永远可用）----
+    return _heuristic_analyze(pixels, w, h, features, lang, plant_ratio)
 
 
 def _unknown_result(lang: str, reason: dict, features: dict) -> dict[str, Any]:

@@ -1240,6 +1240,25 @@
   color: var(--k-ink-3);
 }
 
+/* 流式输出的光标：字在长的时候尾巴上有个闪动方块，
+   "机器正在干活"这件事就一眼可见了，不用让人猜是不是卡住 */
+.bubble .caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: currentColor;
+  opacity: 0.5;
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+
+@keyframes caret-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
 .quick-asks {
   display: flex;
   gap: 8px;
@@ -2149,8 +2168,10 @@
   .record-row,
   .quick-ask,
   .qr-card,
-  .feature-go {
+  .feature-go,
+  .bubble .caret {
     transition: none;
+    animation: none;
   }
 
   .feature-card:hover {

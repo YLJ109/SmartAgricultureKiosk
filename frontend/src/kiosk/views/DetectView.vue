@@ -1,7 +1,8 @@
 <script setup>
 /* 检测页：左取景（扫码 / 本机选图） + 右报告；页头内嵌「重新检测 / 语音播报 / 打印诊断单」 */
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import QRCode from 'qrcode'
 import AppIcon from '../components/AppIcon.vue'
 import { useToast } from '../components/useToast'
 import { useLangStore } from '../stores/lang'
@@ -44,37 +45,70 @@ const showReferenceNote = computed(() =>
   !!result.value && (!result.value.matched || result.value.is_reference),
 )
 
-/* 微信扫码：用 JS 画一个 25×25 的占位二维码（三个定位角 + 固定种子伪随机） */
-const qrSvg = (() => {
-  const N = 25
-  let seed = 20261001
-  const next = () => {
-    seed = (seed * 1103515245 + 12345) % 2147483648
-    return seed / 2147483648
-  }
-  const inFinder = (x, y) => {
-    const zones = [[0, 0], [N - 7, 0], [0, N - 7]]
-    return zones.some((z) => x >= z[0] - 1 && x <= z[0] + 7 && y >= z[1] - 1 && y <= z[1] + 7)
-  }
-  const finder = (zx, zy) =>
-    `<rect x="${zx}" y="${zy}" width="7" height="7"/>` +
-    `<rect x="${zx + 1}" y="${zy + 1}" width="5" height="5" fill="#fff"/>` +
-    `<rect x="${zx + 2}" y="${zy + 2}" width="3" height="3"/>`
+/* ---------- 微信扫码上传（真实可用）----------
+   由后端开一次性会话，二维码里放的**就是后端那张手机上传页的真实地址**：
+   农户用微信扫一扫打开 -> 拍照 -> 照片直接 POST 回后端 -> 这里轮询取件 -> 走正常识别流程。
+   二维码用 qrcode 库真实编码生成，任何扫码工具都能解析，不再是画着好看的占位图形。 */
+const qrSvg = ref('')
+const qrUrl = ref('')
+let qrToken = ''
+let qrTimer = null
 
-  let cells = ''
-  for (let y = 0; y < N; y++) {
-    for (let x = 0; x < N; x++) {
-      if (inFinder(x, y)) continue
-      if (next() > 0.52) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`
-    }
+async function openQrSession() {
+  try {
+    const session = await api.mobileSession()
+    qrToken = session.token
+    qrUrl.value = session.url
+    // type=svg：直接拿到可内联的矢量图，任意分辨率都不糊，也不用额外的 canvas
+    qrSvg.value = await QRCode.toString(session.url, {
+      type: 'svg',
+      margin: 1,
+      errorCorrectionLevel: 'M',
+    })
+    // 后端探测不到局域网地址时会退回 127.0.0.1，那种地址手机是打不开的，得先提示
+    if (!session.reachable) toast.info(lang.t('detect.qrOffline'))
+    startPolling(session.poll_interval_ms || 2000)
+  } catch (err) {
+    qrSvg.value = ''
+    toast.error(errText(err, (k) => lang.t(k)))
   }
-  return (
-    `<svg viewBox="-1 -1 ${N + 2} ${N + 2}" shape-rendering="crispEdges">` +
-    `<rect x="-1" y="-1" width="${N + 2}" height="${N + 2}" fill="#fff"/>` +
-    `<g fill="#16201b">${cells}${finder(0, 0)}${finder(N - 7, 0)}${finder(0, N - 7)}</g>` +
-    '</svg>'
-  )
-})()
+}
+
+function stopPolling() {
+  if (qrTimer) {
+    clearInterval(qrTimer)
+    qrTimer = null
+  }
+}
+
+/* 轮询取件：手机传上来的照片在这里被取回，再当作一次普通上传交给识别接口。
+   只在取景态轮询 —— 出了结果还继续轮询，会把用户根本没在看的照片也吃掉。 */
+function startPolling(interval) {
+  stopPolling()
+  qrTimer = setInterval(async () => {
+    if (!qrToken || mode.value !== 'pick') return
+    try {
+      const pending = await api.mobilePending(qrToken)
+      if (pending.expired) {
+        // 二维码过期就直接换一张新的，而不是让农户对着失效的码反复扫
+        stopPolling()
+        openQrSession()
+        return
+      }
+      if (!pending.ready) return
+      stopPolling()
+      const blob = await (await fetch(pending.image_url)).blob()
+      submit(new File([blob], 'phone.jpg', { type: blob.type || 'image/jpeg' }), 'qrcode')
+    } catch (e) {
+      /* 网络抖一下不打断轮询，下一轮再试 */
+    }
+  }, interval)
+}
+
+/* 点卡片 = 重新生成二维码（手动续期，或换一张更新的） */
+function onQr() {
+  openQrSession()
+}
 
 function revokePreview() {
   if (previewUrl.value && previewUrl.value.startsWith('blob:')) URL.revokeObjectURL(previewUrl.value)
@@ -82,14 +116,6 @@ function revokePreview() {
 
 function pickFile() {
   if (fileInput.value) fileInput.value.click()
-}
-
-/* 扫码入口：后端示例图指向 /uploads 占位文件，环境里未必存在，直接 fetch 会 404。
-   所以这里选「能真跑通」的做法：提示已开通道后，复用本机选图并以 channel=qrcode 提交。 */
-function onQr() {
-  pendingChannel = 'qrcode'
-  toast.info(lang.t('detect.qrScanning'))
-  pickFile()
 }
 
 function onFile(event) {
@@ -191,7 +217,10 @@ watch(
   },
 )
 
+onMounted(openQrSession)
+
 onBeforeUnmount(() => {
+  stopPolling()
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel()
   revokePreview()
 })

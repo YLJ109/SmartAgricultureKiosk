@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     upload_dir: str = "./uploads"
     max_upload_mb: int = 10
 
+    # ---------- 内置示例图（随仓库分发，供"试试看"入口用）----------
+    static_dir: str = "./static"
+
     # ---------- 语言 ----------
     default_lang: str = "zh-CN"
 
@@ -47,7 +50,10 @@ class Settings(BaseSettings):
     ai_temperature: float = 0.6
 
     zhipu_api_key: str = ""
-    zhipu_model: str = "glm-4-flash"
+    # 两个都是智谱免费档：4.5-Flash 管文字问答（128K/96K），4.6V-Flash 管图片理解（128K/32K）。
+    # 选型依据是同一张病叶图的实测对比：glm-4v-flash 把叶斑误判成"锈病"，
+    # glm-4.6v-flash 判"褐斑病"，与本地 YOLO 的 Corn brown spots 一致。
+    zhipu_model: str = "glm-4.5-flash"
     zhipu_base_url: str = "https://open.bigmodel.cn/api/paas/v4"
 
     qwen_api_key: str = ""
@@ -70,6 +76,31 @@ class Settings(BaseSettings):
     custom_model: str = ""
     custom_base_url: str = ""
 
+    # ---------- 智谱视觉理解（glm-4v-flash，免费）----------
+    # 本地模型都没检出时，才把图片交给它做一次"看图说话"：既省联网开销，
+    # 也避免弱网下一体机每拍一张都要等云端返回。
+    zhipu_vision_model: str = "glm-4.6v-flash"
+    vision_llm_enabled: bool = True
+
+    # ---------- 本地检测模型（YOLOv8 ONNX，离线 CPU 推理）----------
+    # 权重放在 backend/data/models/ 下；该目录已被 .gitignore 排除，不进版本库。
+    # 文件缺失时检测自动降级到图片理解 / 启发式，服务照常启动。
+    models_dir: str = "./data/models"
+    plant_model_file: str = "plant_disease_yolov8n.onnx"   # 叶部病害 55 类（YOLOv8n）
+    pest_model_file: str = "insect_best.onnx"              # 农田昆虫 21 类（YOLOv8m）
+    detect_img_size: int = 640
+    plant_conf_threshold: float = 0.35
+    pest_conf_threshold: float = 0.40   # 虫害阈值略高，压掉弱响应误报
+    onnx_intra_threads: int = 2         # 单次推理的核内线程数，把并行度让给请求级并发
+    onnx_inter_threads: int = 1
+
+    # ---------- 域检查门：模型之前先判断"像不像农作物"----------
+    # 作用：挡掉截图 / 食物 / 人脸等域外图片被高置信度误检（实测有教室监控图被误判为虫害）
+    domain_gate_enabled: bool = True
+    domain_gate_green_min: float = 0.05
+    domain_gate_yellow_min: float = 0.60
+    domain_gate_edge_max: float = 0.08
+
     # ---------- 跨域 ----------
     cors_origins: str = "http://localhost:5189,http://127.0.0.1:5189"
 
@@ -89,6 +120,14 @@ class Settings(BaseSettings):
     @property
     def max_upload_bytes(self) -> int:
         return self.max_upload_mb * 1024 * 1024
+
+    @property
+    def static_path(self) -> Path:
+        p = Path(self.static_dir)
+        if not p.is_absolute():
+            p = BACKEND_DIR / p
+        p.mkdir(parents=True, exist_ok=True)
+        return p
 
     def provider_credentials(self, provider: str) -> dict[str, str]:
         """按厂商返回 {api_key, model, base_url}，未配置则为空串。"""

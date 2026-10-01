@@ -9,8 +9,14 @@ pydantic-settings==2.5.2
 sqlalchemy==2.0.35
 aiosqlite==0.20.0
 
-# ===== 图像处理（启发式视觉分析，纯 CPU，无需模型权重）=====
+# ===== 图像处理与本地检测模型（纯 CPU、离线推理）=====
+# 检测链：YOLOv8 ONNX 双模型 -> 智谱 GLM-4V 图片理解 -> 启发式兜底。
+# 模型权重（plant_disease_yolov8n.onnx / insect_best.onnx）放在 backend/data/models/，
+# 该目录已被 .gitignore 排除；文件缺失时自动降级，不影响服务启动。
 Pillow==10.4.0
+numpy>=1.24
+opencv-python-headless>=4.9
+onnxruntime>=1.18
 
 # ===== 认证 =====
 PyJWT==2.9.0          # JWT 签发与校验

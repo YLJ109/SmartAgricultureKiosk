@@ -57,7 +57,7 @@
 | 终端端（一体机大屏） | Vue 3 + Vite + Pinia + Vue Router，**自研适老化样式，不引入 UI 组件库** |
 | 管理后台 | Vue 3 + Vite + Element Plus |
 | 后端 | Python FastAPI + SQLAlchemy 2.0（异步）+ SQLite + JWT |
-| 识别 | 纯 CPU 启发式视觉分析（Pillow 颜色/纹理特征 + 知识库指纹匹配） |
+| 识别 | YOLOv8 ONNX 双模型（本地 CPU 离线）+ 智谱 GLM-4.6V 图片理解 + 启发式兜底 |
 | 问答 | 多厂商大模型（OpenAI 兼容协议）+ 本地知识库降级 |
 | 知识库 | JSON 静态库（16 个类别 / 4 类营养元素 / 4 种作物农事日历） |
 
@@ -101,9 +101,10 @@ SmartAgricultureKiosk/
 │   │   ├── config.py            配置中心（读 .env，含多厂商密钥）
 │   │   ├── constants.py         6 语言、角色、严重度、作物、抑制上传限制
 │   │   ├── schemas.py           全部请求/响应模型
-│   │   ├── api/                 system / auth / recognize / chat / history / stats / admin
+│   │   ├── api/                 system / auth / recognize / mobile / chat / history / stats / admin
 │   │   ├── core/
-│   │   │   ├── vision.py        启发式视觉分析（背景剔除 + 8 维特征 + 指纹匹配）
+│   │   │   ├── detector.py      YOLOv8 ONNX 双模型推理（叶部病害 55 类 / 农田昆虫 21 类）
+│   │   │   ├── vision.py        识别链编排（域检查 → 双模型 → 图片理解 → 启发式兜底）
 │   │   │   ├── knowledge.py     知识库加载、多语言兜底、关键词检索
 │   │   │   ├── llm.py           多厂商大模型适配 + 无密钥降级
 │   │   │   ├── records.py       识别记录的多语言快照与还原
@@ -113,7 +114,9 @@ SmartAgricultureKiosk/
 │   │   │   └── exceptions.py    统一异常处理
 │   │   └── db/                  database.py（异步引擎）+ models.py（6 张表）
 │   ├── knowledge/               pest_disease.json / fertilizer.json / crop_calendar.json
-│   ├── tests/test_smoke.py      端到端冒烟测试（53 项断言）
+│   ├── static/samples/          "试试看"入口用的真实病叶图（随仓库分发，非占位图）
+│   ├── scripts/                 诊断工具：check_detection.py / check_stream.py / decode_qr.py
+│   ├── tests/test_smoke.py      端到端冒烟测试（99 项断言）
 │   └── uploads/                 用户上传的图片
 ├── frontend/
 │   ├── index.html               终端端入口
@@ -126,13 +129,26 @@ SmartAgricultureKiosk/
 
 ## 核心设计决定
 
-### 1. 识别为什么不用深度学习模型
+### 1. 识别链：四级降级，能离线的绝不先上云
 
-完整方案里的 YOLOv8 病害（55 类）+ 虫害（21 类）双模型权重合计约 **226MB**，需要 torch + onnxruntime，装完还要下载权重。这对"clone 下来就能跑"是致命的。
+一体机摆在村口，网络时好时坏，所以识别不押注任何一个单一方案。按顺序往下走，**前一级有可信结果就直接返回**，并把用了哪一级如实写进 `engine` 字段：
 
-所以默认路径改为**启发式视觉分析**：用 Pillow 抽 8 维颜色/纹理特征（绿色、失绿、坏死、白粉、紫红、斑点密度、边缘密度、背景占比），与知识库里每个类别的特征指纹做加权区间匹配。全程纯 CPU、离线、毫秒级、**零模型下载**。
+| 级 | 方案 | 依赖 | 说明 |
+|---|---|---|---|
+| 0 | 域检查门 | 本地 OpenCV | 先判断"像不像农作物"，挡掉截图/饭菜/人脸被判出高置信度 |
+| 1 | 叶部病害模型（YOLOv8n，55 类） | 本地 ONNX，12MB | 离线、纯 CPU、毫秒级 |
+| 2 | 农田昆虫模型（YOLOv8m，21 类） | 本地 ONNX，89MB | 只在病害模型无检出时才加载执行 |
+| 3 | 整图分类器（MobileNetV2，PlantVillage 38 类） | 本地 ONNX，9MB | 离线；**门槛设得很高，当前几乎不采信**，原因见下 |
+| 4 | 图片理解（智谱 GLM-4.6V-Flash，免费） | 联网 | 本地都看不清时才交给云端，2~4 秒 |
+| 5 | 启发式颜色纹理分析 | 本地纯 Python | 断网、缺模型、无密钥时的最后兜底 |
 
-代价写在明处：它**不能**替代真正的细分类模型。结果里带 `engine="heuristic"`，置信度不足 70% 时前端会标注「参考方案，请以农技员意见为准」。要接真模型，替换 `core/vision.py` 的 `analyze()` 即可，接口形状不变。
+> **第 3 级的门槛为什么定得这么高**：现用的分类器权重训练自 PlantVillage —— 那是**实验室受控拍摄**的数据集（纯色背景、单叶居中）。拿本项目 4 张真实照片实测，它的 top1 全部落在 0.16~0.52，且有明确判错（蚜虫图被判成苹果锈病、玉米图被判成番茄晚疫病）。所以采信条件设为「top1 ≥ 0.70 **且** top1 至少是 top2 的 1.8 倍」，宁可不采信也不能让它拿错病名去覆盖后面更可靠的图片理解。想要它真正发挥作用，需要换成田间数据训练的权重（换掉 `data/models/plant_classifier.onnx` 即可，映射表在 `core/classifier.py`）。
+
+**模型只负责"看到什么、在哪里"，症状 / 防治 / 用药一律来自本地知识库** —— 那部分经过校对，而且天生带 6 语言。图片理解返回的中文病名也会先回知识库检索：命中就用知识库内容；没命中才退回它自己的描述、标记为参考方案，同时**丢弃它给的用药信息**（未经校验的药剂和稀释倍数不能直接当处方开给农户）。
+
+关于检测框：只有第 1、2 级（真做了定位的模型）才会产出框。图片理解不画框 —— 它没有定位能力，早期为了"看起来有框"塞过一个盖满整幅图的框，那是误导，农户会以为整片叶子都是病灶。
+
+两个 ONNX 权重合计约 100MB，**不进版本库**（见 `.gitignore` 里的 `backend/data/`）。放到 `backend/data/models/` 即可；文件缺失时自动跳过对应级别，服务照常启动。服务启动时会在后台把模型预热好，避免第一位农户对着"识别中"干等。
 
 ### 2. 背景剔除（一个实测踩到的坑）
 
@@ -143,6 +159,8 @@ SmartAgricultureKiosk/
 `.env` 里列好了智谱 / 通义 / DeepSeek / Kimi / 文心 / 自定义六家的密钥槽位，把 `AI_PROVIDER` 填成对应名字、再填 key 即可。除文心外都是 OpenAI 兼容协议，只写一套调用；文心单独走 AK/SK 换 access_token 的分支。
 
 **没填 key 或调用失败都不会报错给用户**：自动降级到本地知识库检索（关键词匹配知识库后拼装回答），并在响应里如实标记 `source="local"` 或 `"fallback"`。农村弱网下这比弹错误框有用。
+
+问答走**流式**（`POST /api/chat/stream`，SSE）：首字实测 0.4 秒左右到达，前端逐字渲染，而不是等整段生成完再一次性蹦出来 —— 对站在机器前的老人，这两种体感的差别比"快一秒慢一秒"大得多。GLM-4.5/4.6 系列会显式关闭思考模式（实测 14.8s → 8.8s，质量不降）。
 
 ### 4. 多语言：UI 全量，专业内容部分待补
 
@@ -163,11 +181,12 @@ SmartAgricultureKiosk/
 | 分组 | 主要接口 |
 |---|---|
 | 系统 | `GET /api/system/health` `/info` `/langs` `/classes` `/calendar` |
-| 认证 | `POST /api/auth/login` `/guest`；`GET /api/auth/me` |
+| 认证 | `POST /api/auth/login` `/guest` `/kiosk/register` `/kiosk/login`；`GET /api/auth/me` |
 | 识别 | `POST /api/recognize`（multipart）；`GET /api/recognize/samples` |
-| 问答 | `POST /api/chat/ask`；`GET /api/chat/quicks` |
+| 扫码上传 | `POST /api/recognize/mobile/session` `/upload`；`GET /api/recognize/mobile/pending`；手机上传页 `GET /m` |
+| 问答 | `POST /api/chat/ask`（一次返回）、`POST /api/chat/stream`（SSE 逐字）；`GET /api/chat/quicks` |
 | 历史 | `GET /api/history` `/chats` `/{record_no}`；`DELETE /api/history/{record_no}` |
-| 看板 | `GET /api/stats/overview` `/trend` `/disease-dist` `/regions` `/top-questions` |
+| 看板 | `GET /api/stats/mine`（终端端只给本人）；`GET /api/stats/overview` `/trend` `/disease-dist` `/regions` `/top-questions`（后台） |
 | 后台 | `GET /api/admin/dashboard` `/users` `/providers` `/lang-resources` `/logs`（增删改） |
 
 完整交互式文档见 http://127.0.0.1:8002/docs 。
@@ -181,7 +200,9 @@ cd backend
 python tests/test_smoke.py      # 或 pytest tests/test_smoke.py -q
 ```
 
-53 项断言，覆盖系统信息、认证与越权、真实图片识别的整条链路、多语言取值与回退、历史记录、看板聚合、后台增删改与操作留痕。**不需要后端先启动**（用 TestClient 直连应用）。
+99 项断言，覆盖系统信息、认证与越权、真实图片识别的整条链路、多语言取值与回退、历史记录、看板聚合、后台增删改与操作留痕。**不需要后端先启动**（用 TestClient 直连应用）。
+
+> 注意：冒烟测试会注册固定手机号、并依赖空库，**请先在干净数据库上跑**（`backend/data/kiosk.db` 有数据时会因"手机号已注册"等连锁失败）。
 
 ```bash
 cd frontend
@@ -190,7 +211,7 @@ npm run build                   # 双入口构建
 
 ## 已知边界（如实披露）
 
-1. **启发式识别的能力上限**：能区分病害 / 虫害 / 缺素 / 药害四大类，细分类在特征典型时可达 90% 上下；但**特征不典型时只会给出大类 + 操作建议，不硬报病名**。它不能替代专业植保诊断。
+1. **识别链的能力边界**：本地两个模型覆盖 55 类叶部病害 + 21 类农田昆虫，但**映射到本知识库的只有 13 个条目**——认得出但知识库没有对应方案的，只报大类不给具体名（不硬套病名去开药）。本地都判不出时交给图片理解，它的结论会标记为「参考方案，请以农技员意见为准」。都不能替代专业植保诊断。
 2. **知识库覆盖 16 个类别**，是演示规模的精选集，不是完整植保手册。扩类别只需往 `knowledge/pest_disease.json` 加条目，前后端都会自动生效。
 3. **少数民族语言的专业内容待补**（见上文 4）。
 4. **限流是进程内实现**（内存字典），适合单实例。多实例部署要换成 Redis。

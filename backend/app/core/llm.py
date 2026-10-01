@@ -12,6 +12,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
 import time
 from typing import Any
 
@@ -182,8 +184,14 @@ class LlmResult:
         }
 
 
+#: 值得重试一次的状态码。免费档在高峰期会成片返回 429，
+#: 智谱实测会回 `{"code":"1305","message":"该模型当前访问量过大"}`，
+#: 这种等一两秒再来一次往往就通了 —— 和"参数写错了、重试也没用"要区别对待。
+_RETRYABLE = {429, 503}
+
+
 async def _call_openai_compatible(base_url: str, api_key: str, model: str, messages: list[dict[str, str]]) -> dict[str, Any]:
-    """OpenAI 兼容协议（智谱 / 通义 / DeepSeek / Kimi / 自定义）。"""
+    """OpenAI 兼容协议（智谱 / 通义 / DeepSeek / Kimi / 自定义）。限流时重试一次。"""
     url = base_url.rstrip("/") + "/chat/completions"
     payload = {
         "model": model,
@@ -191,12 +199,24 @@ async def _call_openai_compatible(base_url: str, api_key: str, model: str, messa
         "temperature": settings.ai_temperature,
         "max_tokens": settings.ai_max_tokens,
     }
+    # GLM-4.5/4.6 系列默认会先"想一遍"再答：同一道题实测 14.8s，关掉思考后 8.8s，
+    # 而且质量没有下降（默认档反而更容易冒出禁用农药）。对站在一体机前的老人来说，
+    # 等 15 秒和等 9 秒是两种体验，所以显式关掉。
+    # 这个参数只有智谱的思考型模型认，其它厂商收到会报错，所以按模型名前缀判断。
+    if model.startswith(("glm-4.5", "glm-4.6")):
+        payload["thinking"] = {"type": "disabled"}
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
-    async with httpx.AsyncClient(timeout=settings.ai_timeout_seconds) as client:
-        resp = await client.post(url, json=payload, headers=headers)
+    for attempt in (0, 1):
+        async with httpx.AsyncClient(timeout=settings.ai_timeout_seconds, trust_env=False) as client:
+            resp = await client.post(url, json=payload, headers=headers)
+        if resp.status_code in _RETRYABLE and attempt == 0:
+            logger.info("上游 {} 限流，1.5 秒后重试一次", resp.status_code)
+            await asyncio.sleep(1.5)
+            continue
         resp.raise_for_status()
         data = resp.json()
+        break
 
     content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
     usage = data.get("usage") or {}
@@ -233,6 +253,143 @@ async def _call_baidu(api_key: str, secret_key: str, model: str, messages: list[
         "content": data.get("result", ""),
         "tokens": int(usage.get("total_tokens") or 0),
     }
+
+
+# ==========================================================================
+# 图片理解（智谱 GLM-4V，免费模型）
+# ==========================================================================
+
+#: 要求模型只回一个 JSON。病名要中文，是因为回头要拿它去知识库里检索对应条目，
+#: 再由知识库按用户语言输出——模型自己的多语言农技术语不可靠，知识库的才经过校对。
+_VISION_PROMPT = (
+    "你是植物病害诊断专家。仔细看这张农作物叶片照片，"
+    "只输出一个 JSON 对象，不要任何解释文字，不要 Markdown 代码块。字段如下：\n"
+    '{"category": "disease" 或 "pest" 或 "nutrient" 或 "phyto" 或 "healthy" 或 "unknown",'
+    ' "name": "最可能的中文病害或虫害名称，不要带作物名前缀",'
+    ' "confidence": 0 到 100 的整数,'
+    ' "symptoms": ["你实际看到的症状，最多 3 条"],'
+    ' "treatment": ["农户能照着做的处置建议，最多 3 条"]}\n'
+    "照片里不是农作物叶片时 category 填 unknown。"
+    "拿不准就降低 confidence 或直接填 unknown，绝对不要编造病名。"
+)
+
+
+def _image_data_url(image_path) -> str:
+    """读图 -> 缩到长边 1024 -> JPEG -> base64 data URL。
+
+    必须缩图：原图动辄几 MB，base64 后还要再涨三分之一，既慢又容易撞上游的请求体积上限；
+    而判断叶部病害根本不需要原始分辨率。
+    """
+    import base64
+    import io
+
+    from PIL import Image
+
+    img = Image.open(image_path).convert("RGB")
+    img.thumbnail((1024, 1024))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+
+def _extract_json(text: str) -> dict[str, Any] | None:
+    """从模型回复里抠出 JSON 对象。
+
+    模型经常把 JSON 包在 ```json 里、或前后带一句客套话，所以先整体试，
+    失败再退化到"取第一个 { 到最后一个 }"。仍失败就返回 None，由调用方兜底。
+    """
+    import json as _json
+    import re as _re
+
+    text = (text or "").strip()
+    # 部分视觉模型会在答案外面包一层控制标记（实测 GLM-4.1V-Thinking-Flash 会输出
+    # <|begin_of_box|>…<|end_of_box|>），不去掉的话 JSON 永远解不出来。
+    # 换模型时这行是必要的兜底，成本只有一次正则。
+    text = _re.sub(r"<\|[^|]*\|>", "", text).strip()
+    if not text:
+        return None
+    stripped = text
+    for fence in ("```json", "```"):
+        if stripped.startswith(fence):
+            stripped = stripped[len(fence):]
+    stripped = stripped.removesuffix("```").strip()
+
+    for candidate in (text, stripped):
+        try:
+            data = _json.loads(candidate)
+            if isinstance(data, dict):
+                return data
+        except _json.JSONDecodeError:
+            continue
+
+    start, end = text.find("{"), text.rfind("}")
+    if 0 <= start < end:
+        try:
+            data = _json.loads(text[start:end + 1])
+            if isinstance(data, dict):
+                return data
+        except _json.JSONDecodeError:
+            return None
+    return None
+
+
+def vision_analyze_sync(image_path, lang: str = "zh-CN") -> dict[str, Any] | None:
+    """同步调用智谱视觉模型做图片理解。
+
+    这里刻意用同步 httpx：它由 `vision.analyze()` 在 FastAPI 的 threadpool 里调用，
+    于是 CPU 推理和这段网络等待都不会占住事件循环。
+
+    返回 None 表示"不可用 / 调用失败"——调用方继续走下一级兜底，从不抛异常。
+    """
+    if not settings.vision_llm_enabled:
+        return None
+    cred = settings.provider_credentials("zhipu")
+    if not cred["api_key"]:
+        return None
+
+    try:
+        data_url = _image_data_url(image_path)
+    except Exception as exc:
+        logger.warning("图片读取失败，跳过图片理解：{}", exc)
+        return None
+
+    payload = {
+        "model": settings.zhipu_vision_model,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": _VISION_PROMPT},
+                    {"type": "image_url", "image_url": {"url": data_url}},
+                ],
+            }
+        ],
+        "temperature": 0.2,
+    }
+    headers = {"Authorization": f"Bearer {cred['api_key']}", "Content-Type": "application/json"}
+    url = cred["base_url"].rstrip("/") + "/chat/completions"
+
+    started = time.perf_counter()
+    try:
+        # trust_env=False 是必须的：本机 HTTPS_PROXY 指向随会话变化的本地端口，
+        # 经它转发智谱时实测约一半请求会失败；直连稳定。
+        with httpx.Client(timeout=settings.ai_timeout_seconds * 2, trust_env=False) as client:
+            resp = client.post(url, json=payload, headers=headers)
+        if resp.status_code >= 400:
+            logger.warning("图片理解失败 status={} body={}", resp.status_code, resp.text[:200])
+            return None
+        content = (resp.json().get("choices") or [{}])[0].get("message", {}).get("content", "")
+    except Exception as exc:
+        logger.warning("图片理解请求异常：{}", exc)
+        return None
+
+    parsed = _extract_json(content)
+    if not parsed:
+        logger.warning("图片理解返回的不是 JSON：{}", (content or "")[:200])
+        return None
+    parsed["latency_ms"] = _ms(started)
+    parsed["model"] = settings.zhipu_vision_model
+    return parsed
 
 
 # ==========================================================================
@@ -273,6 +430,129 @@ async def ask(question: str, lang: str = "zh-CN", context: str | None = None) ->
 
 def _ms(started: float) -> int:
     return int((time.perf_counter() - started) * 1000)
+
+
+async def ask_stream(question: str, lang: str = "zh-CN", context: str | None = None):
+    """流式问答：逐块吐出增量文本，最后吐一条 meta（来源 / 模型 / 耗时 / 完整答案）。
+
+    为什么要流式：一体机前站着的是老人，等 9 秒不出字和 0.5 秒开始出字，
+    体感完全是两回事 —— 而且首字延迟远小于整段生成时间。
+
+    降级行为与非流式完全一致：网络不通、429 限流、超时、返回空内容，
+    一律退回本地知识库，只是把整段一次性吐出去，前端不会卡在空白气泡上。
+    """
+    started = time.perf_counter()
+    provider = settings.active_provider
+
+    if provider == "none":
+        answer = local_answer(question, lang)
+        yield {"type": "delta", "text": answer}
+        yield {
+            "type": "meta", "source": "local", "provider": "none",
+            "provider_label": PROVIDER_LABELS["none"], "model": "local-knowledge",
+            "tokens": 0, "latency_ms": _ms(started), "answer": answer,
+        }
+        return
+
+    ctx = build_context(question, lang) if context is None else context
+    messages = build_messages(question, lang, ctx)
+    cred = settings.provider_credentials(provider)
+
+    # 文心是另一套协议，不按 OpenAI 的 SSE 增量返回，整段取回来再吐一次即可
+    if provider == "baidu":
+        result = await ask(question, lang, ctx)
+        yield {"type": "delta", "text": result.answer}
+        yield {
+            "type": "meta", "source": result.source, "provider": provider,
+            "provider_label": PROVIDER_LABELS.get(provider, provider),
+            "model": result.model, "tokens": result.tokens,
+            "latency_ms": _ms(started), "answer": result.answer,
+        }
+        return
+
+    payload = {
+        "model": cred["model"],
+        "messages": messages,
+        "temperature": settings.ai_temperature,
+        "max_tokens": settings.ai_max_tokens,
+        "stream": True,
+    }
+    # 与非流式同样的处理：GLM-4.5/4.6 关掉思考，实测 14.8s -> 8.8s 且质量不降
+    if cred["model"].startswith(("glm-4.5", "glm-4.6")):
+        payload["thinking"] = {"type": "disabled"}
+
+    headers = {"Authorization": f"Bearer {cred['api_key']}", "Content-Type": "application/json"}
+    url = cred["base_url"].rstrip("/") + "/chat/completions"
+
+    def _fallback(source: str, reason: str):
+        logger.warning("流式调用 {} 失败（{}），降级本地知识库：{}", provider, reason, question[:30])
+        text = local_answer(question, lang)
+        return [
+            {"type": "delta", "text": text},
+            {
+                "type": "meta", "source": source, "provider": provider,
+                "provider_label": PROVIDER_LABELS.get(provider, provider),
+                "model": cred["model"], "tokens": 0,
+                "latency_ms": _ms(started), "answer": text,
+            },
+        ]
+
+    pieces: list[str] = []
+    # 限流重试：只在"还没吐出任何正文"时重试，避免把已经发给前端的半截答案再来一遍。
+    # 429 是在建立连接阶段就能看到的，所以这个前提通常成立。
+    for attempt in (0, 1):
+        pieces.clear()
+        try:
+            # read 超时用 ai_timeout_seconds：首字之前模型在排队，之后是持续的小块输出，
+            # 两者都不该按"整段必须在 N 秒内完成"来卡。
+            timeout = httpx.Timeout(settings.ai_timeout_seconds, connect=10.0)
+            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
+                async with client.stream("POST", url, json=payload, headers=headers) as resp:
+                    if resp.status_code in _RETRYABLE:
+                        body = (await resp.aread())[:200]
+                        if attempt == 0:
+                            logger.info("上游 {} 限流，1.5 秒后重试一次", resp.status_code)
+                            await asyncio.sleep(1.5)
+                            continue
+                        raise RuntimeError(f"上游 {resp.status_code}: {body!r}")
+                    if resp.status_code >= 400:
+                        body = (await resp.aread())[:200]
+                        raise RuntimeError(f"上游 {resp.status_code}: {body!r}")
+                    async for line in resp.aiter_lines():
+                        line = line.strip()
+                        if not line.startswith("data:"):
+                            continue
+                        data = line[5:].strip()
+                        if data == "[DONE]":
+                            break
+                        try:
+                            chunk = json.loads(data)
+                        except json.JSONDecodeError:
+                            continue
+                        delta = (chunk.get("choices") or [{}])[0].get("delta") or {}
+                        piece = delta.get("content") or ""
+                        if piece:
+                            pieces.append(piece)
+                            yield {"type": "delta", "text": piece}
+            break
+        except Exception as exc:
+            for evt in _fallback("fallback", f"{type(exc).__name__}"):
+                yield evt
+            return
+
+    answer = "".join(pieces).strip()
+    if not answer:
+        # 上游 200 却一个字没回（偶发），同样兜到本地知识库，别给用户留一个空气泡
+        for evt in _fallback("fallback", "empty"):
+            yield evt
+        return
+
+    yield {
+        "type": "meta", "source": "llm", "provider": provider,
+        "provider_label": PROVIDER_LABELS.get(provider, provider),
+        "model": cred["model"], "tokens": 0,
+        "latency_ms": _ms(started), "answer": answer,
+    }
 
 
 async def healthcheck() -> dict[str, Any]:
