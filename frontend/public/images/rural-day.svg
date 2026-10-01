@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="乡村田野">
+  <defs>
+    <!-- 天空：顶部通透偏冷，接近地平线转暖，像清早/傍晚的柔光 -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bcd9ea"/>
+      <stop offset="42%" stop-color="#dfe9e3"/>
+      <stop offset="78%" stop-color="#f2e5cd"/>
+      <stop offset="100%" stop-color="#efdcbd"/>
+    </linearGradient>
+
+    <!-- 阳光光晕：只提亮，不刷白，避免压掉白色文字与白卡的对比 -->
+    <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff4cf" stop-opacity="0.92"/>
+      <stop offset="45%" stop-color="#ffe9ad" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#ffe9ad" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 丘陵三层：越远越浅越偏蓝，做出空气透视 -->
+    <linearGradient id="hillFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9dc3ab"/>
+      <stop offset="100%" stop-color="#86b295"/>
+    </linearGradient>
+    <linearGradient id="hillMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6ea37d"/>
+      <stop offset="100%" stop-color="#5b8f6b"/>
+    </linearGradient>
+
+    <!-- 田地与前景：整体压深，保证中段（白字/白卡所在）有足够对比 -->
+    <linearGradient id="field" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#54915f"/>
+      <stop offset="100%" stop-color="#3d7449"/>
+    </linearGradient>
+    <linearGradient id="fieldFore" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#376a43"/>
+      <stop offset="100%" stop-color="#28502f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#sky)"/>
+
+  <!-- 低角度日光 + 光晕 -->
+  <circle cx="1090" cy="250" r="300" fill="url(#sunGlow)"/>
+  <circle cx="1090" cy="250" r="58" fill="#fff6d8" opacity="0.9"/>
+
+  <!-- 柔和云带：低透明度，只做通透感 -->
+  <g fill="#ffffff">
+    <ellipse cx="300" cy="150" rx="150" ry="34" opacity="0.42"/>
+    <ellipse cx="390" cy="128" rx="96" ry="28" opacity="0.34"/>
+    <ellipse cx="760" cy="108" rx="120" ry="24" opacity="0.28"/>
+    <ellipse cx="1210" cy="140" rx="140" ry="28" opacity="0.26"/>
+  </g>
+
+  <!-- 远山 -->
+  <path
+    d="M0 486 C 170 424 300 452 452 486 C 604 520 700 464 868 486 C 1020 506 1150 452 1440 500 L1440 900 L0 900 Z"
+    fill="url(#hillFar)"/>
+  <!-- 中景丘陵 -->
+  <path
+    d="M0 566 C 200 516 372 556 548 572 C 726 588 884 534 1064 562 C 1236 588 1340 558 1440 578 L1440 900 L0 900 Z"
+    fill="url(#hillMid)"/>
+
+  <!-- 田垄：从画面底边向地平线收拢，做出纵深感 -->
+  <path d="M0 628 L1440 628 L1440 900 L0 900 Z" fill="url(#field)"/>
+  <g stroke="#ffffff" stroke-opacity="0.13" stroke-width="3" stroke-linecap="round">
+    <path d="M0 900 L468 628"/>
+    <path d="M180 900 L531 628"/>
+    <path d="M360 900 L594 628"/>
+    <path d="M540 900 L657 628"/>
+    <path d="M720 900 L720 628"/>
+    <path d="M900 900 L783 628"/>
+    <path d="M1080 900 L846 628"/>
+    <path d="M1260 900 L909 628"/>
+    <path d="M1440 900 L972 628"/>
+  </g>
+
+  <!-- 前景田带：再压深一档，托住底部 -->
+  <path d="M0 792 L1440 792 L1440 900 L0 900 Z" fill="url(#fieldFore)"/>
+  <g stroke="#ffffff" stroke-opacity="0.07" stroke-width="4">
+    <path d="M0 900 L300 792"/>
+    <path d="M330 900 L470 792"/>
+    <path d="M690 900 L690 792"/>
+    <path d="M1050 900 L910 792"/>
+    <path d="M1440 900 L1140 792"/>
+  </g>
+
+  <!-- 地平线上的树丛：给画面一个可读的尺度参照 -->
+  <g fill="#315c3d" opacity="0.9">
+    <path d="M196 566 l16 -46 l16 46 z"/>
+    <path d="M232 566 l13 -38 l13 38 z"/>
+    <path d="M258 566 l11 -30 l11 30 z"/>
+    <path d="M1186 566 l15 -42 l15 42 z"/>
+    <path d="M1220 566 l12 -34 l12 34 z"/>
+  </g>
+</svg>

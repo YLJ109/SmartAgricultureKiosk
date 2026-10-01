@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" role="img" aria-label="病叶检测">
+  <defs>
+    <linearGradient id="dLeaf" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#63c983"/>
+      <stop offset="1" stop-color="#2e9e4f"/>
+    </linearGradient>
+    <linearGradient id="dLens" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#e6f6ec" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 底衬淡绿圆：只做层次，颜色压得极淡，避免影响左侧文字的对比度 -->
+  <circle cx="330" cy="198" r="186" fill="#e7f6ec"/>
+
+  <!-- 叶身：斜置椭圆，叶柄朝左下 -->
+  <ellipse cx="330" cy="200" rx="132" ry="116" transform="rotate(-18 330 200)" fill="url(#dLeaf)"/>
+
+  <!-- 叶脉：一条主脉 + 六条对称侧脉 -->
+  <g fill="none" stroke="#eafaf0" stroke-linecap="round">
+    <path d="M204 241 Q 330 176 456 159" stroke-width="8" opacity="0.95"/>
+    <g stroke-width="5" opacity="0.6">
+      <path d="M267 220 L 288 285"/>
+      <path d="M267 220 L 246 155"/>
+      <path d="M330 200 L 351 265"/>
+      <path d="M330 200 L 309 135"/>
+      <path d="M393 180 L 414 245"/>
+      <path d="M393 180 L 372 115"/>
+    </g>
+  </g>
+  <path d="M204 241 C 186 250 174 264 168 282" fill="none" stroke="#2e9e4f" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- 镜片先于病斑绘制：让病斑看起来"透过镜片"清楚可见 -->
+  <circle cx="300" cy="212" r="70" fill="url(#dLens)"/>
+
+  <!-- 病斑：外圈枯黄晕 + 内核褐斑 -->
+  <g>
+    <ellipse cx="255" cy="175" rx="20" ry="16" fill="#f2cd90" opacity="0.85"/>
+    <ellipse cx="255" cy="175" rx="12" ry="9" fill="#b06a2c"/>
+    <ellipse cx="372" cy="238" rx="23" ry="18" fill="#f2cd90" opacity="0.85"/>
+    <ellipse cx="372" cy="238" rx="14" ry="10" fill="#b06a2c"/>
+    <ellipse cx="300" cy="212" rx="27" ry="22" fill="#f2cd90" opacity="0.9"/>
+    <ellipse cx="300" cy="212" rx="17" ry="13" fill="#a75f24"/>
+  </g>
+
+  <!-- 镜框与手柄 -->
+  <circle cx="300" cy="212" r="70" fill="none" stroke="#1f7a3c" stroke-width="10"/>
+  <path d="M348 260 L 404 316" fill="none" stroke="#1f7a3c" stroke-width="18" stroke-linecap="round"/>
+</svg>

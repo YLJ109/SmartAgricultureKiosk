@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" role="img" aria-label="历史记录">
+  <defs>
+    <linearGradient id="hCard" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fffaf0"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="340" cy="198" r="186" fill="#fdf3e0"/>
+
+  <!-- 后层错位卡：暗示一条条积攒下来的历史 -->
+  <rect x="256" y="88" width="228" height="176" rx="26" fill="#f6c96a" transform="rotate(-7 370 176)"/>
+
+  <!-- 前层当前记录卡 -->
+  <rect x="228" y="116" width="248" height="204" rx="28" fill="url(#hCard)" stroke="#e59500" stroke-width="7"/>
+  <g stroke="#eec367" stroke-width="11" stroke-linecap="round">
+    <path d="M266 168 H 438"/>
+    <path d="M266 206 H 402"/>
+    <path d="M266 244 H 444"/>
+    <path d="M266 282 H 346"/>
+  </g>
+
+  <!-- 时间轴：三条记录按时间排开 -->
+  <path d="M232 356 H 484" stroke="#e59500" stroke-width="7" stroke-linecap="round" opacity="0.45"/>
+  <g fill="#f7bb2d">
+    <circle cx="266" cy="356" r="14"/>
+    <circle cx="358" cy="356" r="14"/>
+    <circle cx="450" cy="356" r="14"/>
+  </g>
+</svg>

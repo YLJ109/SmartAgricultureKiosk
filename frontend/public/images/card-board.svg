@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" role="img" aria-label="数据看板">
+  <defs>
+    <linearGradient id="bBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a68aec"/>
+      <stop offset="1" stop-color="#6b46c1"/>
+    </linearGradient>
+    <linearGradient id="bBarSoft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cdbdf6"/>
+      <stop offset="1" stop-color="#9b7ae8"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="344" cy="196" r="186" fill="#f1ecfd"/>
+
+  <path d="M234 322 H 488" stroke="#6b46c1" stroke-width="8" stroke-linecap="round" opacity="0.35"/>
+
+  <rect x="250" y="236" width="48" height="86" rx="16" fill="url(#bBarSoft)"/>
+  <rect x="314" y="180" width="48" height="142" rx="16" fill="url(#bBar)"/>
+  <rect x="378" y="212" width="48" height="110" rx="16" fill="url(#bBarSoft)"/>
+  <rect x="442" y="136" width="48" height="186" rx="16" fill="url(#bBar)"/>
+
+  <!-- 趋势折线压在柱顶之上 -->
+  <path d="M274 216 L 338 158 L 402 190 L 466 114" fill="none" stroke="#5c37b0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <g fill="#ffffff" stroke="#6b46c1" stroke-width="7">
+    <circle cx="274" cy="216" r="12"/>
+    <circle cx="338" cy="158" r="12"/>
+    <circle cx="402" cy="190" r="12"/>
+    <circle cx="466" cy="114" r="12"/>
+  </g>
+
+  <!-- 田垄线：看板上的数据也是从地里长出来的 -->
+  <g stroke="#c9b8f2" stroke-width="5" opacity="0.55" stroke-linecap="round">
+    <path d="M242 356 H 480"/>
+    <path d="M242 374 H 448"/>
+  </g>
+</svg>

@@ -1,0 +1,201 @@
+/* ==========================================================================
+   设计令牌 + 基础重置（终端端 / 一体机大屏 · 适老化）
+   --ag-* 基础色板来自 demo/assets/css/style.css
+   --k-*  适老化令牌来自 demo/assets/css/kiosk.css（原样搬运，保证视觉一致）
+   ========================================================================== */
+
+/* ---------- 维吾尔语专用字体（ALKATIP Basma Tom，由项目方提供） ----------
+   放在 public/fonts 下由 Vite 原样发布（不走打包哈希），替换字体时直接覆盖同名文件即可。
+   该字族只有 Bold 一个字重，所以声明成 100~900 全区间：
+   否则浏览器会在"已经是粗体"的字面上再合成一次粗体，笔画会糊。 */
+@font-face {
+  font-family: 'ALKATIP Basma Tom';
+  src: url('/fonts/ALKATIP-Basma-Tom-Bold.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ---------- 主色 · 农业绿 ---------- */
+  --ag-primary-050: #eef8f1;
+  --ag-primary-100: #d6eddd;
+  --ag-primary-400: #46b46a;
+  --ag-primary-500: #2e9e4f;
+  --ag-primary-600: #247f3f;
+  --ag-primary-700: #1b6130;
+
+  /* 功能色 */
+  --ag-accent-500: #f2a900;
+  --ag-accent-050: #fdf4e2;
+  --ag-danger-500: #d93025;
+  --ag-danger-050: #fdecea;
+  --ag-info-500: #1a73e8;
+  --ag-info-050: #e8f1fd;
+  --ag-success-500: #1e8e3e;
+
+  /* 中性色 */
+  --ag-bg: #f5f7f6;
+  --ag-surface: #ffffff;
+  --ag-surface-2: #fafbfa;
+  --ag-text-1: #1f2421;
+  --ag-text-2: #4a5350;
+  --ag-text-3: #8b9491;
+  --ag-border: #e3e8e5;
+  --ag-border-strong: #cfd8d3;
+
+  /* 圆角 */
+  --ag-radius-s: 8px;
+  --ag-radius-m: 16px;
+  --ag-radius-l: 24px;
+
+  /* 阴影 */
+  --ag-shadow-1: 0 2px 8px rgba(31, 36, 33, 0.06);
+  --ag-shadow-2: 0 8px 24px rgba(31, 36, 33, 0.12);
+  --ag-shadow-3: 0 16px 40px rgba(31, 36, 33, 0.16);
+
+  /* 渐变 */
+  --ag-gradient-primary: linear-gradient(135deg, #2e9e4f 0%, #247f3f 100%);
+  --ag-gradient-accent: linear-gradient(135deg, #f7bb2d 0%, #e59500 100%);
+  --ag-gradient-hero: linear-gradient(160deg, rgba(27, 97, 48, 0.9) 0%, rgba(36, 127, 63, 0.68) 55%, rgba(46, 158, 79, 0.42) 100%);
+
+  /* ---------- 适老化：字号阶梯（根字号约 22px @1920） ---------- */
+  --k-fs-sm: 0.98rem;
+  --k-fs-base: 1.06rem;
+  --k-fs-lg: 1.28rem;
+
+  /* 间距：小元素严格 ≤12px；卡片与大容器放宽到 16–20px */
+  --k-gap: 12px;
+  --k-gap-sm: 10px;
+  --k-pad: 12px;
+  --k-pad-md: 16px;
+  --k-pad-lg: 20px;
+
+  /* 触控尺寸 */
+  --k-btn: 3.2rem;
+  --k-btn-sm: 2.5rem;
+
+  /* 圆角 */
+  --k-radius: 0.8rem;
+  --k-radius-lg: 1.1rem;
+
+  /* 文本与描边（高对比，不用浅灰小字） */
+  --k-ink: #17211c;
+  --k-ink-2: #3a453f;
+  --k-ink-3: #5f6b64;
+  --k-line: #dde5e0;
+  --k-line-strong: #b4c1b9;
+  --k-focus: #0b5cab;
+
+  /* 全局字体：切换语言时由 lang store 覆盖成民族文字回退链 */
+  --k-font: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", Inter, system-ui, -apple-system, sans-serif;
+}
+
+/* 根字号：同时受宽和高约束，保证整屏固定布局在任何窗口比例下都放得下
+   1920×1080 → min(22.1px, 28.1px) = 22.1px（一体机标准尺寸，字号最大）
+   1920×700  → min(22.1px, 18.2px) = 18.2px（矮窗口自动缩小，不裁切内容）
+   1366×768  → min(15.7px, 20.0px) = 16px（触到下限） */
+html.terminal {
+  font-size: clamp(15px, min(1.15vw, 2.6vh), 23px);
+}
+
+/* ---------- 整屏固定骨架 ---------- */
+html.terminal,
+html.terminal body {
+  height: 100%;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--k-font);
+  color: var(--ag-text-1);
+  background: var(--ag-bg);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+.terminal-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  color: var(--k-ink);
+  line-height: 1.6;
+}
+
+/* Vue 挂载点：与 demo 的 #app 等价 */
+#kiosk {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* 图标 + 文本永远成组出现（不出现孤立图标） */
+.icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  white-space: nowrap;
+}
+
+/* 图标容器：默认按当前字号取 1em，组件可覆盖 */
+[data-icon] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+[data-icon] > svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* 键盘 / 触摸聚焦始终可见 */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--k-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* 只在打印时出现的元素（历史记录打印单） */
+.print-only {
+  display: none;
+}

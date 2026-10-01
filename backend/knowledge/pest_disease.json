@@ -1,0 +1,556 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-10-01",
+  "feature_keys": [
+    "green_ratio",
+    "chlorosis_ratio",
+    "necrosis_ratio",
+    "whitish_ratio",
+    "purple_ratio",
+    "spot_density",
+    "edge_density",
+    "bg_ratio"
+  ],
+  "feature_note": "前 7 项参与打分；bg_ratio 只用于解释（背景剔除前后的占比），不参与匹配。所有比值均在前景像素上计算：先按最外一圈像素估计背景色并剔除，避免「白纸衬底」把 whitish_ratio 顶高而误判成白粉病。",
+  "i18n_status": {
+    "zh-CN": "complete",
+    "en-US": "complete",
+    "ug-CN": "pending — 专业农技内容需母语者+农技员校对，当前回退中文",
+    "kk-CN": "pending — 同上",
+    "bo-CN": "pending — 同上",
+    "mn-CN": "pending — 同上"
+  },
+  "classes": [
+    {
+      "key": "tomato_early_blight",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Alternaria solani",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.06, 0.45],
+        "chlorosis_ratio": [0.03, 0.30],
+        "spot_density": [0.30, 1.0],
+        "whitish_ratio": [0.0, 0.06],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "necrosis_ratio": 3, "spot_density": 3, "chlorosis_ratio": 1 },
+      "keywords": ["番茄", "早疫", "轮纹", "褐斑", "同心轮纹"],
+      "name": { "zh-CN": "番茄早疫病", "en-US": "Tomato early blight" },
+      "symptoms": {
+        "zh-CN": ["下部老叶先出现褐色圆形斑，斑上有同心轮纹", "病斑扩大后连片，叶片自下而上枯黄", "潮湿时病斑边缘可见黑色霉层"],
+        "en-US": ["Brown circular spots with concentric rings appear on lower leaves first", "Spots merge and leaves wilt from bottom upward", "Dark mould visible on spot margins in humid weather"]
+      },
+      "cause": {
+        "zh-CN": "由茄链格孢菌引起。高温高湿、植株长势弱、连作地块发病重，雨水飞溅是主要传播途径。",
+        "en-US": "Caused by Alternaria solani. Favoured by warm humid weather, weak plants and continuous cropping; spread mainly by rain splash."
+      },
+      "treatment": {
+        "zh-CN": ["摘除下部病叶并带出田外销毁，不要留在地里", "适当疏叶通风，降低田间湿度", "与非茄科作物轮作 2 年以上", "发病初期即开始用药，7~10 天一次，连喷 2~3 次"],
+        "en-US": ["Remove and destroy lower infected leaves off-field", "Thin leaves to improve airflow and lower humidity", "Rotate with non-solanaceous crops for 2+ years", "Spray from early onset, every 7-10 days, 2-3 times"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 1500 倍液", "代森锰锌 600 倍液（保护性）", "嘧菌酯 2000 倍液"],
+        "en-US": ["Difenoconazole 1:1500", "Mancozeb 1:600 (protective)", "Azoxystrobin 1:2000"]
+      }
+    },
+    {
+      "key": "tomato_late_blight",
+      "category": "disease",
+      "crop": "番茄",
+      "latin": "Phytophthora infestans",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.10, 0.60],
+        "chlorosis_ratio": [0.03, 0.25],
+        "spot_density": [0.15, 0.70],
+        "whitish_ratio": [0.02, 0.12],
+        "purple_ratio": [0.0, 0.06]
+      },
+      "weights": { "necrosis_ratio": 3, "whitish_ratio": 2, "spot_density": 1 },
+      "keywords": ["番茄", "晚疫", "水渍状", "白霉", "烂叶"],
+      "name": { "zh-CN": "番茄晚疫病", "en-US": "Tomato late blight" },
+      "symptoms": {
+        "zh-CN": ["叶缘出现暗绿色水渍状斑，迅速扩大", "病斑由暗绿转褐色，叶背有白色霉层", "茎秆出现黑褐色条斑，果实变硬褐腐"],
+        "en-US": ["Dark water-soaked lesions start at leaf margins and expand fast", "Lesions turn brown with white mould on the underside", "Stems show dark streaks; fruits rot with firm brown patches"]
+      },
+      "cause": {
+        "zh-CN": "由致病疫霉引起。低温高湿（18~22℃、相对湿度 85% 以上）时爆发极快，一晚即可毁田。",
+        "en-US": "Caused by Phytophthora infestans. Explodes under cool humid conditions (18-22C, RH above 85%), can destroy a field overnight."
+      },
+      "treatment": {
+        "zh-CN": ["发现中心病株立即拔除并带出田外深埋", "严格控制浇水，避免叶面长时间结露", "雨前抢喷保护性药剂，雨后补喷治疗性药剂", "棚室要及时放风排湿"],
+        "en-US": ["Rogue out and deep-bury the first infected plants immediately", "Avoid overhead irrigation and prolonged leaf wetness", "Spray protectant before rain, curative after", "Vent greenhouses to remove humidity"]
+      },
+      "pesticide": {
+        "zh-CN": ["烯酰吗啉 800 倍液", "霜脲·锰锌 600 倍液", "氟菌·霜霉威 800 倍液"],
+        "en-US": ["Dimethomorph 1:800", "Cymoxanil+Mancozeb 1:600", "Fluopicolide+Propamocarb 1:800"]
+      }
+    },
+    {
+      "key": "cucumber_powdery_mildew",
+      "category": "disease",
+      "crop": "黄瓜",
+      "latin": "Podosphaera xanthii",
+      "severity": "medium",
+      "signature": {
+        "whitish_ratio": [0.10, 0.55],
+        "chlorosis_ratio": [0.02, 0.25],
+        "necrosis_ratio": [0.0, 0.15],
+        "spot_density": [0.10, 0.60],
+        "purple_ratio": [0.0, 0.04]
+      },
+      "weights": { "whitish_ratio": 4, "necrosis_ratio": -1, "chlorosis_ratio": 1 },
+      "keywords": ["黄瓜", "白粉", "白霜", "粉状"],
+      "name": { "zh-CN": "黄瓜白粉病", "en-US": "Cucumber powdery mildew" },
+      "symptoms": {
+        "zh-CN": ["叶面出现白色近圆形粉斑，像撒了面粉", "粉斑连成大片，叶片变黄发脆", "后期白粉变灰褐，叶片干枯但不脱落"],
+        "en-US": ["White powdery round patches on leaves, like flour dust", "Patches merge, leaves turn yellow and brittle", "Powder turns grey-brown late; leaves dry but stay attached"]
+      },
+      "cause": {
+        "zh-CN": "由单囊壳菌引起。空气干燥与高湿交替、光照不足、通风差、氮肥偏多时发病重。",
+        "en-US": "Caused by Podosphaera xanthii. Favoured by alternating dry/humid air, poor light, poor ventilation and excess nitrogen."
+      },
+      "treatment": {
+        "zh-CN": ["及时摘除下部重病叶，改善通风透光", "控氮增钾，避免植株徒长", "早晚叶面喷清水可抑制孢子扩散", "发病期 7 天一次，连喷 2~3 次，注意轮换药剂"],
+        "en-US": ["Remove severely infected lower leaves to improve airflow", "Reduce nitrogen, increase potassium", "Misting leaves morning/evening suppresses spore spread", "Spray every 7 days, 2-3 rounds, rotate chemicals"]
+      },
+      "pesticide": {
+        "zh-CN": ["醚菌酯 2500 倍液", "戊唑醇 3000 倍液", "枯草芽孢杆菌 800 倍液（生物）"],
+        "en-US": ["Kresoxim-methyl 1:2500", "Tebuconazole 1:3000", "Bacillus subtilis 1:800 (biological)"]
+      }
+    },
+    {
+      "key": "maize_leaf_blight",
+      "category": "disease",
+      "crop": "玉米",
+      "latin": "Exserohilum turcicum",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.05, 0.40],
+        "chlorosis_ratio": [0.05, 0.35],
+        "spot_density": [0.05, 0.35],
+        "whitish_ratio": [0.0, 0.06],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "necrosis_ratio": 2, "chlorosis_ratio": 2, "spot_density": -1 },
+      "keywords": ["玉米", "大斑", "长条斑", "梭形"],
+      "name": { "zh-CN": "玉米大斑病", "en-US": "Northern corn leaf blight" },
+      "symptoms": {
+        "zh-CN": ["叶片出现长梭形灰褐色大斑，长可达 10 厘米以上", "病斑常连片，严重时整叶枯死", "潮湿时病斑表面生灰黑色霉层"],
+        "en-US": ["Long spindle-shaped grey-brown lesions, often over 10 cm", "Lesions merge; whole leaves may die", "Grey-black mould on lesions in humid weather"]
+      },
+      "cause": {
+        "zh-CN": "由大斑凸脐蠕孢菌引起。中温高湿（20~25℃）、多雨多露时流行，连作和密植加重发病。",
+        "en-US": "Caused by Exserohilum turcicum. Epidemic under moderate temperature, high humidity and frequent dew; worsened by continuous cropping and dense planting."
+      },
+      "treatment": {
+        "zh-CN": ["收获后深翻灭茬，清除田间病残体", "选用抗病品种，合理密植", "心叶末期至抽雄期是防治关键期", "增施钾肥提高抗病力"],
+        "en-US": ["Deep plough after harvest to bury residues", "Use resistant hybrids and proper plant density", "Critical window: late whorl to tasselling", "Increase potassium to boost resistance"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 1500 倍液", "吡唑醚菌酯 1500 倍液", "丙环唑 2000 倍液"],
+        "en-US": ["Difenoconazole 1:1500", "Pyraclostrobin 1:1500", "Propiconazole 1:2000"]
+      }
+    },
+    {
+      "key": "apple_scab",
+      "category": "disease",
+      "crop": "苹果",
+      "latin": "Venturia inaequalis",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.03, 0.30],
+        "chlorosis_ratio": [0.02, 0.25],
+        "spot_density": [0.35, 1.0],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "spot_density": 4, "necrosis_ratio": 2, "chlorosis_ratio": 1 },
+      "keywords": ["苹果", "黑星", "疮痂", "霉斑"],
+      "name": { "zh-CN": "苹果黑星病", "en-US": "Apple scab" },
+      "symptoms": {
+        "zh-CN": ["叶片正面出现近圆形橄榄绿霉状斑", "后期病斑变黑褐色，叶片扭曲早落", "果实受害形成木栓化黑疤"],
+        "en-US": ["Olive-green velvety round spots on upper leaf surface", "Spots darken, leaves curl and drop early", "Fruit develops corky black scabs"]
+      },
+      "cause": {
+        "zh-CN": "由苹果黑星菌引起。春季多雨、气温 15~20℃ 时孢子大量释放，是全年发病基础。",
+        "en-US": "Caused by Venturia inaequalis. Rainy spring at 15-20C triggers heavy spore release that determines the whole season."
+      },
+      "treatment": {
+        "zh-CN": ["清扫落叶并深埋，减少越冬菌源", "发芽前喷石硫合剂铲除越冬病菌", "花后至幼果期是保叶保果关键期", "雨季适当疏枝，改善果园通风"],
+        "en-US": ["Collect and bury fallen leaves to cut overwintering inoculum", "Apply lime-sulphur before bud break", "Protect leaves from petal fall to young fruit stage", "Prune for better orchard airflow in the rainy season"]
+      },
+      "pesticide": {
+        "zh-CN": ["苯醚甲环唑 2000 倍液", "氟硅唑 4000 倍液", "代森锰锌 600 倍液（保护性）"],
+        "en-US": ["Difenoconazole 1:2000", "Flusilazole 1:4000", "Mancozeb 1:600 (protective)"]
+      }
+    },
+    {
+      "key": "citrus_canker",
+      "category": "disease",
+      "crop": "柑橘",
+      "latin": "Xanthomonas citri",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.05, 0.40],
+        "chlorosis_ratio": [0.05, 0.35],
+        "spot_density": [0.40, 1.0],
+        "whitish_ratio": [0.0, 0.08],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "spot_density": 3, "necrosis_ratio": 2, "chlorosis_ratio": 2 },
+      "keywords": ["柑橘", "溃疡", "火山口", "木栓化"],
+      "name": { "zh-CN": "柑橘溃疡病", "en-US": "Citrus canker" },
+      "symptoms": {
+        "zh-CN": ["叶背先出现针头状黄色油渍斑", "病斑隆起呈火山口状，中央木栓化开裂", "病斑周围有黄色晕圈，严重时落叶落果"],
+        "en-US": ["Pinpoint yellow water-soaked spots start on the leaf underside", "Lesions rise into a crater shape with corky, cracked centre", "Yellow halo around lesions; heavy defoliation and fruit drop"]
+      },
+      "cause": {
+        "zh-CN": "由地毯草黄单胞菌柑橘致病变种引起。风雨、潜叶蛾危害伤口是主要侵染途径，属检疫性病害。",
+        "en-US": "Caused by Xanthomonas citri. Wind-driven rain and leaf-miner wounds are the main entry points. A quarantine disease."
+      },
+      "treatment": {
+        "zh-CN": ["严格执行苗木检疫，不从疫区调苗", "及时防治潜叶蛾，减少伤口", "剪除病枝病叶并集中烧毁，工具要消毒", "台风暴雨前后各喷一次药保护嫩梢"],
+        "en-US": ["Enforce nursery quarantine; never move plants from infested areas", "Control leaf miners to reduce wounds", "Prune and burn infected shoots; disinfect tools", "Spray before and after storms to protect new flush"]
+      },
+      "pesticide": {
+        "zh-CN": ["噻菌铜 500 倍液", "春雷霉素 800 倍液", "波尔多液 1:1:100（保护性）"],
+        "en-US": ["Thiodiazole-copper 1:500", "Kasugamycin 1:800", "Bordeaux mixture 1:1:100 (protective)"]
+      }
+    },
+    {
+      "key": "rice_blast",
+      "category": "disease",
+      "crop": "水稻",
+      "latin": "Magnaporthe oryzae",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.04, 0.35],
+        "chlorosis_ratio": [0.03, 0.25],
+        "spot_density": [0.30, 1.0],
+        "whitish_ratio": [0.0, 0.06],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "spot_density": 4, "necrosis_ratio": 2, "chlorosis_ratio": 1 },
+      "keywords": ["水稻", "稻瘟", "梭形斑", "灰白斑"],
+      "name": { "zh-CN": "稻瘟病", "en-US": "Rice blast" },
+      "symptoms": {
+        "zh-CN": ["叶片出现梭形病斑，中央灰白、边缘褐色", "病斑两端有褐色坏死线，湿度大时背面生灰绿霉", "穗颈受害变褐，形成白穗"],
+        "en-US": ["Spindle-shaped lesions with grey-white centre and brown margin", "Brown necrotic lines extend from lesion tips; grey-green mould underneath in humid air", "Neck infection turns brown and causes white empty panicles"]
+      },
+      "cause": {
+        "zh-CN": "由稻梨孢菌引起。阴雨多露、日照不足、氮肥偏多、长期深水灌溉时最易流行。",
+        "en-US": "Caused by Magnaporthe oryzae. Epidemics follow cloudy wet weather, low sunshine, excess nitrogen and deep continuous flooding."
+      },
+      "treatment": {
+        "zh-CN": ["选用抗病品种，种子播前药剂浸种", "控氮增钾硅，避免偏施迟施氮肥", "分蘖末期适时晒田，降低田间湿度", "破口期和齐穗期是防治关键，各喷一次药"],
+        "en-US": ["Use resistant varieties and treat seed before sowing", "Balance nitrogen with potassium and silicon; avoid late heavy N", "Drain fields at late tillering to cut humidity", "Spray at boot breaking and full heading - the two critical windows"]
+      },
+      "pesticide": {
+        "zh-CN": ["三环唑 1000 倍液（预防首选）", "稻瘟灵 1000 倍液", "春雷霉素 800 倍液"],
+        "en-US": ["Tricyclazole 1:1000 (first choice for prevention)", "Isoprothiolane 1:1000", "Kasugamycin 1:800"]
+      }
+    },
+    {
+      "key": "wheat_powdery_mildew",
+      "category": "disease",
+      "crop": "小麦",
+      "latin": "Blumeria graminis",
+      "severity": "medium",
+      "signature": {
+        "whitish_ratio": [0.08, 0.50],
+        "chlorosis_ratio": [0.03, 0.30],
+        "necrosis_ratio": [0.0, 0.15],
+        "spot_density": [0.15, 0.70],
+        "purple_ratio": [0.0, 0.04]
+      },
+      "weights": { "whitish_ratio": 4, "chlorosis_ratio": 2, "necrosis_ratio": -1 },
+      "keywords": ["小麦", "白粉", "粉层", "白霜"],
+      "name": { "zh-CN": "小麦白粉病", "en-US": "Wheat powdery mildew" },
+      "symptoms": {
+        "zh-CN": ["下部叶片正面出现白色霉点，逐渐连成粉状霉层", "霉层后期变灰褐色，上生黑色小点", "叶片黄化早枯，植株矮小，穗小粒少"],
+        "en-US": ["White mildew spots on lower leaf surfaces, merging into powder", "Mildew turns grey-brown with tiny black bodies late", "Leaves yellow and die early; plants stunted with small heads"]
+      },
+      "cause": {
+        "zh-CN": "由禾本科布氏白粉菌引起。群体密度大、通风差、湿度高、氮肥多时发病重。",
+        "en-US": "Caused by Blumeria graminis. Favoured by dense canopy, poor airflow, high humidity and heavy nitrogen."
+      },
+      "treatment": {
+        "zh-CN": ["合理密植，避免群体过大", "控氮增磷钾，防止倒伏和贪青", "拔节至孕穗期及时用药控制", "清除田间自生麦苗，减少菌源"],
+        "en-US": ["Keep moderate plant density", "Balance nitrogen with P and K", "Treat between jointing and booting", "Remove volunteer wheat plants that carry inoculum"]
+      },
+      "pesticide": {
+        "zh-CN": ["三唑酮 1000 倍液", "戊唑醇 3000 倍液", "醚菌酯 2500 倍液"],
+        "en-US": ["Triadimefon 1:1000", "Tebuconazole 1:3000", "Kresoxim-methyl 1:2500"]
+      }
+    },
+    {
+      "key": "nitrogen_deficiency",
+      "category": "nutrient",
+      "crop": "通用",
+      "latin": "-",
+      "severity": "medium",
+      "signature": {
+        "chlorosis_ratio": [0.25, 0.80],
+        "green_ratio": [0.05, 0.45],
+        "necrosis_ratio": [0.0, 0.10],
+        "whitish_ratio": [0.0, 0.05],
+        "purple_ratio": [0.0, 0.04],
+        "spot_density": [0.0, 0.35]
+      },
+      "weights": { "chlorosis_ratio": 4, "green_ratio": -2, "necrosis_ratio": -2 },
+      "keywords": ["缺氮", "黄化", "老叶发黄", "整株黄"],
+      "name": { "zh-CN": "缺氮黄化", "en-US": "Nitrogen deficiency" },
+      "symptoms": {
+        "zh-CN": ["老叶先均匀褪绿发黄，新叶仍较绿", "黄化由叶尖沿中脉向内扩展，整叶淡黄", "植株矮小，分蘖或分枝明显减少"],
+        "en-US": ["Older leaves yellow evenly first while new leaves stay green", "Yellowing spreads from tip along the midrib", "Plants are stunted with fewer tillers or branches"]
+      },
+      "cause": {
+        "zh-CN": "土壤速效氮不足，或基肥用量少、淋溶损失大；沙质土和雨后易发生。",
+        "en-US": "Low available soil nitrogen, insufficient basal fertiliser or heavy leaching; common on sandy soils and after rain."
+      },
+      "treatment": {
+        "zh-CN": ["追施尿素每亩 8~12 公斤，兑水浇施或雨后撒施", "配合叶面喷施 1% 尿素溶液，5 天一次连喷两次", "增施有机肥改善保肥能力", "注意与缺镁区分：缺镁黄化从叶脉间开始"],
+        "en-US": ["Top-dress urea 8-12 kg per mu with water or after rain", "Foliar spray 1% urea, twice at 5-day interval", "Add organic matter to improve nutrient retention", "Distinguish from magnesium deficiency, which yellows between veins"]
+      },
+      "pesticide": {
+        "zh-CN": ["无药剂，属营养问题", "可配 1% 尿素 + 0.2% 磷酸二氢钾叶面肥"],
+        "en-US": ["No pesticide needed; this is a nutrition issue", "Foliar: 1% urea + 0.2% monopotassium phosphate"]
+      }
+    },
+    {
+      "key": "phosphorus_deficiency",
+      "category": "nutrient",
+      "crop": "通用",
+      "latin": "-",
+      "severity": "medium",
+      "signature": {
+        "purple_ratio": [0.04, 0.35],
+        "chlorosis_ratio": [0.03, 0.30],
+        "necrosis_ratio": [0.0, 0.12],
+        "green_ratio": [0.20, 0.75],
+        "whitish_ratio": [0.0, 0.05]
+      },
+      "weights": { "purple_ratio": 5, "necrosis_ratio": -1 },
+      "keywords": ["缺磷", "紫红", "发紫", "叶背紫"],
+      "name": { "zh-CN": "缺磷紫红", "en-US": "Phosphorus deficiency" },
+      "symptoms": {
+        "zh-CN": ["老叶叶背和叶缘呈紫红色", "植株矮小，叶片窄而直立", "根系发育差，成熟延迟"],
+        "en-US": ["Undersides and margins of older leaves turn purple-red", "Plants stunted, leaves narrow and upright", "Poor root development and delayed maturity"]
+      },
+      "cause": {
+        "zh-CN": "土壤有效磷低，或低温、土壤板结导致根系吸磷受阻；酸性土和石灰性土都易发生。",
+        "en-US": "Low available phosphorus, or restricted uptake caused by cold soil and compaction; occurs on both acid and calcareous soils."
+      },
+      "treatment": {
+        "zh-CN": ["基施过磷酸钙或钙镁磷肥，每亩 30~40 公斤", "叶面喷施 0.2%~0.3% 磷酸二氢钾，连喷 2~3 次", "低温季节增施有机肥提高地温", "注意与缺钾区分：缺钾是老叶叶缘先焦枯"],
+        "en-US": ["Basal superphosphate or fused phosphate 30-40 kg per mu", "Foliar 0.2-0.3% monopotassium phosphate, 2-3 rounds", "Add organic matter in cold seasons to warm soil", "Distinguish from potassium deficiency, which scorches leaf margins first"]
+      },
+      "pesticide": {
+        "zh-CN": ["无药剂，属营养问题", "可配 0.3% 磷酸二氢钾叶面肥"],
+        "en-US": ["No pesticide needed; this is a nutrition issue", "Foliar: 0.3% monopotassium phosphate"]
+      }
+    },
+    {
+      "key": "aphid",
+      "category": "pest",
+      "crop": "通用",
+      "latin": "Aphidoidea",
+      "severity": "medium",
+      "signature": {
+        "spot_density": [0.45, 1.0],
+        "green_ratio": [0.10, 0.70],
+        "chlorosis_ratio": [0.05, 0.35],
+        "necrosis_ratio": [0.0, 0.18],
+        "whitish_ratio": [0.0, 0.08],
+        "edge_density": [0.30, 1.0]
+      },
+      "weights": { "spot_density": 3, "edge_density": 3, "chlorosis_ratio": 2 },
+      "keywords": ["蚜虫", "腻虫", "蜜露", "卷叶", "群集"],
+      "name": { "zh-CN": "蚜虫", "en-US": "Aphids" },
+      "symptoms": {
+        "zh-CN": ["嫩梢和叶背群集大量小虫，虫体绿色或黑色", "叶片卷曲皱缩，表面有油亮蜜露", "蜜露诱发煤污病，叶片发黑", "严重时植株生长停滞"],
+        "en-US": ["Dense colonies on tender shoots and leaf undersides, green or black", "Leaves curl and wrinkle, coated with shiny honeydew", "Sooty mould grows on honeydew and blackens leaves", "Severe infestations stop plant growth"]
+      },
+      "cause": {
+        "zh-CN": "蚜虫繁殖极快，一头雌蚜可孤雌繁殖数十头后代。高温干旱、天敌少时爆发。",
+        "en-US": "Aphids reproduce extremely fast by parthenogenesis. Outbreaks follow hot dry weather with few natural enemies."
+      },
+      "treatment": {
+        "zh-CN": ["黄板诱杀有翅蚜，每亩挂 20~30 块", "保护瓢虫、草蛉等天敌", "点片发生时及时挑治，不必全田用药", "清除田边杂草，减少虫源"],
+        "en-US": ["Hang 20-30 yellow sticky boards per mu to trap winged aphids", "Conserve ladybirds and lacewings", "Spot-treat early colonies instead of spraying whole fields", "Clear field-edge weeds that harbour aphids"]
+      },
+      "pesticide": {
+        "zh-CN": ["吡虫啉 2000 倍液", "啶虫脒 3000 倍液", "苦参碱 800 倍液（生物）"],
+        "en-US": ["Imidacloprid 1:2000", "Acetamiprid 1:3000", "Matrine 1:800 (biological)"]
+      }
+    },
+    {
+      "key": "red_spider_mite",
+      "category": "pest",
+      "crop": "通用",
+      "latin": "Tetranychidae",
+      "severity": "medium",
+      "signature": {
+        "chlorosis_ratio": [0.15, 0.55],
+        "spot_density": [0.40, 1.0],
+        "necrosis_ratio": [0.02, 0.25],
+        "green_ratio": [0.10, 0.60],
+        "edge_density": [0.25, 1.0]
+      },
+      "weights": { "spot_density": 4, "chlorosis_ratio": 3, "edge_density": 2 },
+      "keywords": ["红蜘蛛", "叶螨", "细网", "针点斑", "黄白点"],
+      "name": { "zh-CN": "红蜘蛛（叶螨）", "en-US": "Spider mites" },
+      "symptoms": {
+        "zh-CN": ["叶面密布针头大小的黄白色失绿小点", "叶背可见细小蛛丝和爬行小虫", "叶片由黄转褐焦枯，似被火烤", "严重时整株叶片脱落"],
+        "en-US": ["Tiny yellowish-white stippling covers the leaf surface", "Fine webbing and moving mites on the underside", "Leaves turn yellow then scorched brown", "Heavy infestations defoliate the plant"]
+      },
+      "cause": {
+        "zh-CN": "高温干旱是主要诱因，25~30℃ 时繁殖最快。长期单一用药易产生抗性。",
+        "en-US": "Driven by hot dry weather; fastest reproduction at 25-30C. Repeated use of one chemical quickly breeds resistance."
+      },
+      "treatment": {
+        "zh-CN": ["及时清除田边杂草和受害重叶", "适当增加田间湿度，抑制繁殖", "交替使用不同作用机理的杀螨剂，避免抗性", "叶片正反面都要喷到，重点是叶背"],
+        "en-US": ["Remove edge weeds and heavily infested leaves", "Raise field humidity to slow reproduction", "Alternate acaricides with different modes of action", "Spray both leaf surfaces, especially the underside"]
+      },
+      "pesticide": {
+        "zh-CN": ["阿维菌素 2000 倍液", "哒螨灵 2000 倍液", "联苯肼酯 2000 倍液"],
+        "en-US": ["Abamectin 1:2000", "Pyridaben 1:2000", "Bifenazate 1:2000"]
+      }
+    },
+    {
+      "key": "brown_planthopper",
+      "category": "pest",
+      "crop": "水稻",
+      "latin": "Nilaparvata lugens",
+      "severity": "high",
+      "signature": {
+        "spot_density": [0.30, 0.90],
+        "chlorosis_ratio": [0.10, 0.45],
+        "necrosis_ratio": [0.05, 0.35],
+        "green_ratio": [0.10, 0.60],
+        "edge_density": [0.25, 1.0]
+      },
+      "weights": { "spot_density": 3, "necrosis_ratio": 2, "edge_density": 2 },
+      "keywords": ["褐飞虱", "冒穿", "虱烧", "稻飞虱"],
+      "name": { "zh-CN": "褐飞虱", "en-US": "Brown planthopper" },
+      "symptoms": {
+        "zh-CN": ["稻丛基部群集大量若虫和成虫", "植株养分被吸走，茎秆变软发黑", "田间出现成团枯死，俗称“冒穿”", "严重时全田倒伏绝收"],
+        "en-US": ["Dense nymph and adult clusters at the base of rice clumps", "Plants weaken, stems soften and blacken", "Circular patches of dead rice, known as hopperburn", "Severe outbreaks cause total lodging and crop loss"]
+      },
+      "cause": {
+        "zh-CN": "由褐飞虱吸食汁液并传播病毒病。迁入期遇上高温高湿、田间郁闭时爆发。",
+        "en-US": "Caused by brown planthopper feeding and virus transmission. Outbreaks when immigration meets hot humid weather and a dense canopy."
+      },
+      "treatment": {
+        "zh-CN": ["分蘖末期适时晒田，破坏低龄若虫环境", "选用抗虫品种，避免偏施氮肥", "保护稻田蜘蛛、黑肩绿盲蝽等天敌", "虫量达标立即用药，药液要喷到稻丛基部"],
+        "en-US": ["Drain fields at late tillering to disrupt young nymphs", "Use resistant varieties and avoid excess nitrogen", "Conserve spiders and mirid bugs", "Spray once thresholds are met, directing spray to the plant base"]
+      },
+      "pesticide": {
+        "zh-CN": ["吡蚜酮 2000 倍液", "烯啶虫胺 2000 倍液", "金龟子绿僵菌 800 倍液（生物）"],
+        "en-US": ["Pymetrozine 1:2000", "Nitenpyram 1:2000", "Metarhizium anisopliae 1:800 (biological)"]
+      }
+    },
+    {
+      "key": "corn_borer",
+      "category": "pest",
+      "crop": "玉米",
+      "latin": "Ostrinia furnacalis",
+      "severity": "high",
+      "signature": {
+        "necrosis_ratio": [0.05, 0.35],
+        "spot_density": [0.05, 0.45],
+        "chlorosis_ratio": [0.05, 0.35],
+        "green_ratio": [0.25, 0.80],
+        "edge_density": [0.15, 0.60]
+      },
+      "weights": { "necrosis_ratio": 2, "chlorosis_ratio": 2, "spot_density": -2 },
+      "keywords": ["玉米螟", "钻心虫", "排孔", "茎秆折断"],
+      "name": { "zh-CN": "玉米螟", "en-US": "Asian corn borer" },
+      "symptoms": {
+        "zh-CN": ["心叶期幼虫蛀入心叶，展开后呈横排排孔", "茎秆内被蛀空，遇风易折断", "穗期蛀食籽粒和穗轴，造成瘪粒"],
+        "en-US": ["Larvae tunnel into the whorl, producing rows of holes when leaves unfurl", "Stalks hollowed out and snap in wind", "Larvae feed on kernels and cob, causing shrivelled grain"]
+      },
+      "cause": {
+        "zh-CN": "由亚洲玉米螟幼虫蛀食。越冬基数大、秸秆未处理、暖冬年份发生重。",
+        "en-US": "Caused by Asian corn borer larvae. Worse after mild winters, high overwintering populations and unprocessed crop residues."
+      },
+      "treatment": {
+        "zh-CN": ["越冬期处理秸秆，消灭越冬幼虫", "心叶末期是最佳防治窗口，用颗粒剂灌心", "释放赤眼蜂寄生卵块，每亩 1.5 万头", "夜间点灯诱杀成虫"],
+        "en-US": ["Process crop residues in winter to kill overwintering larvae", "Late whorl stage is the key window - apply granules into the whorl", "Release Trichogramma wasps at 15000 per mu", "Use light traps at night for adults"]
+      },
+      "pesticide": {
+        "zh-CN": ["氯虫苯甲酰胺 3000 倍液", "辛硫磷颗粒剂 灌心", "苏云金杆菌 800 倍液（生物）"],
+        "en-US": ["Chlorantraniliprole 1:3000", "Phoxim granules into the whorl", "Bacillus thuringiensis 1:800 (biological)"]
+      }
+    },
+    {
+      "key": "pesticide_phytotoxicity",
+      "category": "phyto",
+      "crop": "通用",
+      "latin": "-",
+      "severity": "medium",
+      "signature": {
+        "necrosis_ratio": [0.04, 0.35],
+        "chlorosis_ratio": [0.08, 0.45],
+        "spot_density": [0.10, 0.60],
+        "whitish_ratio": [0.03, 0.25],
+        "purple_ratio": [0.0, 0.05]
+      },
+      "weights": { "necrosis_ratio": 2, "chlorosis_ratio": 2, "whitish_ratio": 2, "spot_density": -1 },
+      "keywords": ["药害", "灼伤", "焦边", "喷药后", "斑点均匀"],
+      "name": { "zh-CN": "农药药害", "en-US": "Pesticide phytotoxicity" },
+      "symptoms": {
+        "zh-CN": ["喷药后 1~3 天突发，全田均匀一致", "叶片出现焦边、白化斑或油渍状斑", "新叶畸形成杯状或蕨叶状", "地边、重叠喷药处症状更重"],
+        "en-US": ["Sudden onset 1-3 days after spraying, uniform across the field", "Leaf scorching, bleaching or oily lesions", "New leaves cupped or fern-like", "Worse along borders and spray overlaps"]
+      },
+      "cause": {
+        "zh-CN": "用药浓度过高、高温时段喷药、混用不当或除草剂飘移所致。属人为因素，与病原无关。",
+        "en-US": "Caused by over-concentration, spraying in the heat of day, incompatible tank mixes or herbicide drift. Man-made, not pathogenic."
+      },
+      "treatment": {
+        "zh-CN": ["立即喷清水冲洗叶面，稀释残留药液", "追施速效氮肥和叶面肥促进恢复", "中耕松土，增强根系活力", "记录用药品种浓度，避免下次重复"],
+        "en-US": ["Rinse foliage with clean water immediately to dilute residues", "Top-dress quick nitrogen and foliar fertiliser to aid recovery", "Loosen soil to boost root activity", "Record the product and dose to avoid repeating the mistake"]
+      },
+      "pesticide": {
+        "zh-CN": ["无杀菌杀虫剂可用，避免二次伤害", "可喷 0.2% 磷酸二氢钾 + 芸苔素内酯缓解"],
+        "en-US": ["Do not apply more pesticides - avoid compounding the damage", "Use 0.2% monopotassium phosphate plus brassinolide to alleviate"]
+      }
+    },
+    {
+      "key": "healthy",
+      "category": "healthy",
+      "crop": "通用",
+      "latin": "-",
+      "severity": "info",
+      "signature": {
+        "green_ratio": [0.55, 1.0],
+        "chlorosis_ratio": [0.0, 0.12],
+        "necrosis_ratio": [0.0, 0.06],
+        "whitish_ratio": [0.0, 0.06],
+        "purple_ratio": [0.0, 0.03],
+        "spot_density": [0.0, 0.18]
+      },
+      "weights": { "green_ratio": 4, "chlorosis_ratio": -3, "necrosis_ratio": -3, "spot_density": -2 },
+      "keywords": ["健康", "正常", "无病斑"],
+      "name": { "zh-CN": "未见明显异常", "en-US": "No obvious issue detected" },
+      "symptoms": {
+        "zh-CN": ["叶色浓绿均匀，无失绿或坏死斑", "叶片平展，无卷曲畸形", "未见虫体、虫粪或蜜露"],
+        "en-US": ["Uniform deep green colour without chlorosis or necrosis", "Leaves flat and normally shaped", "No insects, frass or honeydew observed"]
+      },
+      "cause": {
+        "zh-CN": "本次照片反映的叶面状态良好。建议保持现有管理水平并定期巡田。",
+        "en-US": "The submitted photo shows healthy foliage. Keep up the current management and scout regularly."
+      },
+      "treatment": {
+        "zh-CN": ["继续保持合理的水肥管理", "每 7 天巡田一次，重点检查叶背和心叶", "雨天前后各查一次，及早发现中心病株"],
+        "en-US": ["Maintain balanced irrigation and fertilisation", "Scout weekly, focusing on leaf undersides and whorls", "Check before and after rain to catch the first infected plants"]
+      },
+      "pesticide": {
+        "zh-CN": ["无需用药"],
+        "en-US": ["No treatment required"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-10-01",
+  "note": "施肥知识库：既用于缺素问答，也用于农事日历的追肥提醒。用量以「每亩」为单位，沙质土取下限、黏质土取上限。",
+  "nutrients": [
+    {
+      "key": "nitrogen",
+      "symbol": "N",
+      "name": { "zh-CN": "氮", "en-US": "Nitrogen" },
+      "deficiency": {
+        "zh-CN": "老叶先均匀褪绿发黄，由叶尖沿中脉向内扩展；植株矮小，分蘖分枝少。",
+        "en-US": "Older leaves yellow evenly first, spreading from tip along the midrib; plants stunted with fewer tillers."
+      },
+      "excess": {
+        "zh-CN": "植株徒长贪青，茎秆软弱易倒伏，抗病力下降，成熟推迟。",
+        "en-US": "Excessive vegetative growth, weak lodging-prone stems, lower disease resistance, delayed maturity."
+      },
+      "sources": [
+        { "name": { "zh-CN": "尿素", "en-US": "Urea" }, "content": "46% N" },
+        { "name": { "zh-CN": "碳酸氢铵", "en-US": "Ammonium bicarbonate" }, "content": "17% N" },
+        { "name": { "zh-CN": "硫酸铵", "en-US": "Ammonium sulphate" }, "content": "21% N" }
+      ],
+      "advice": {
+        "zh-CN": ["基肥深施，追肥分次施用，避免一次过量", "沙质土少量多次，防止淋溶损失", "叶面喷施浓度 1% 尿素，5~7 天一次"],
+        "en-US": ["Apply basal N deep and split top-dressings", "On sandy soil use small frequent doses to avoid leaching", "Foliar urea at 1%, every 5-7 days"]
+      }
+    },
+    {
+      "key": "phosphorus",
+      "symbol": "P",
+      "name": { "zh-CN": "磷", "en-US": "Phosphorus" },
+      "deficiency": {
+        "zh-CN": "老叶叶背和叶缘呈紫红色，叶片窄而直立；根系发育差，成熟延迟。",
+        "en-US": "Undersides and margins of older leaves turn purple-red; narrow upright leaves; poor roots, delayed maturity."
+      },
+      "excess": {
+        "zh-CN": "易固定土壤中的锌铁等微量元素，诱发缺锌；并随水土流失污染水体。",
+        "en-US": "Can fix zinc and iron in soil, inducing deficiency, and pollutes water when lost to runoff."
+      },
+      "sources": [
+        { "name": { "zh-CN": "过磷酸钙", "en-US": "Superphosphate" }, "content": "14%~20% P2O5" },
+        { "name": { "zh-CN": "钙镁磷肥", "en-US": "Fused calcium magnesium phosphate" }, "content": "12%~18% P2O5" },
+        { "name": { "zh-CN": "磷酸二氢钾", "en-US": "Monopotassium phosphate" }, "content": "52% P2O5" }
+      ],
+      "advice": {
+        "zh-CN": ["磷肥全部作基肥，集中施在根系附近", "低温季节配合有机肥提高地温与吸收率", "叶面用 0.3% 磷酸二氢钾，连喷 2~3 次"],
+        "en-US": ["Apply all P as basal fertiliser placed near roots", "Combine with organic matter in cold seasons", "Foliar 0.3% monopotassium phosphate, 2-3 rounds"]
+      }
+    },
+    {
+      "key": "potassium",
+      "symbol": "K",
+      "name": { "zh-CN": "钾", "en-US": "Potassium" },
+      "deficiency": {
+        "zh-CN": "老叶叶缘先焦枯发黄，由边缘向内蔓延；茎秆软弱，果实着色差、不耐储。",
+        "en-US": "Older leaf margins scorch and yellow inward; weak stems; poor fruit colouring and storage."
+      },
+      "excess": {
+        "zh-CN": "影响钙镁吸收，造成果实脐腐或叶片边缘坏死；浪费成本。",
+        "en-US": "Interferes with calcium and magnesium uptake, causing blossom-end rot or marginal necrosis; wastes cost."
+      },
+      "sources": [
+        { "name": { "zh-CN": "硫酸钾", "en-US": "Potassium sulphate" }, "content": "50% K2O" },
+        { "name": { "zh-CN": "氯化钾", "en-US": "Potassium chloride" }, "content": "60% K2O" },
+        { "name": { "zh-CN": "草木灰", "en-US": "Plant ash" }, "content": "5%~10% K2O" }
+      ],
+      "advice": {
+        "zh-CN": ["喜钾作物（马铃薯、烟草、葡萄）用硫酸钾，不用氯化钾", "膨大期和着色期是需钾高峰，提前 7 天追施", "与氮磷配合，避免单施"],
+        "en-US": ["Use potassium sulphate for chloride-sensitive crops", "Peak demand at bulking and colouring; top-dress 7 days ahead", "Always combine with N and P"]
+      }
+    },
+    {
+      "key": "micronutrient",
+      "symbol": "Zn/Fe/Mg/B",
+      "name": { "zh-CN": "微量元素", "en-US": "Micronutrients" },
+      "deficiency": {
+        "zh-CN": "缺锌：新叶变小簇生（小叶病）。缺铁：新叶叶脉间失绿，叶脉仍绿。缺镁：老叶叶脉间失绿。缺硼：生长点坏死、花而不实。",
+        "en-US": "Zn: small clustered new leaves. Fe: interveinal chlorosis on new leaves with green veins. Mg: interveinal chlorosis on old leaves. B: growing point necrosis and poor fruit set."
+      },
+      "excess": {
+        "zh-CN": "微量元素安全范围窄，过量易造成毒害，务必按说明稀释。",
+        "en-US": "Micronutrients have a narrow safe range; overdosing causes toxicity, so always follow the label."
+      },
+      "sources": [
+        { "name": { "zh-CN": "硫酸锌", "en-US": "Zinc sulphate" }, "content": "叶面 0.1%~0.2%" },
+        { "name": { "zh-CN": "硫酸亚铁", "en-US": "Ferrous sulphate" }, "content": "叶面 0.2%~0.5%" },
+        { "name": { "zh-CN": "硼砂", "en-US": "Borax" }, "content": "叶面 0.1%~0.2%" }
+      ],
+      "advice": {
+        "zh-CN": ["以叶面喷施为主，见效快、用量省", "碱性土壤最容易缺锌缺铁，可配施有机肥", "开花前补硼，坐果后补钙"],
+        "en-US": ["Prefer foliar sprays - fast acting and low dose", "Alkaline soils most often lack Zn and Fe; add organic matter", "Boron before flowering, calcium after fruit set"]
+      }
+    }
+  ],
+  "crop_plans": [
+    {
+      "crop": "番茄",
+      "stages": [
+        { "stage": { "zh-CN": "苗期", "en-US": "Seedling" }, "n": 5, "p": 6, "k": 6, "tip": { "zh-CN": "轻施提苗肥，避免旺长", "en-US": "Light starter fertiliser, avoid rank growth" } },
+        { "stage": { "zh-CN": "开花坐果期", "en-US": "Flowering & fruit set" }, "n": 8, "p": 5, "k": 12, "tip": { "zh-CN": "控氮增钾，防止落花", "en-US": "Reduce N, increase K to prevent flower drop" } },
+        { "stage": { "zh-CN": "盛果期", "en-US": "Peak fruiting" }, "n": 10, "p": 4, "k": 18, "tip": { "zh-CN": "每采一次果追一次肥", "en-US": "Top-dress after each harvest round" } }
+      ]
+    },
+    {
+      "crop": "玉米",
+      "stages": [
+        { "stage": { "zh-CN": "苗期", "en-US": "Seedling" }, "n": 6, "p": 7, "k": 5, "tip": { "zh-CN": "以基肥为主，苗期少追", "en-US": "Rely on basal fertiliser, little top-dressing" } },
+        { "stage": { "zh-CN": "拔节期", "en-US": "Jointing" }, "n": 12, "p": 3, "k": 8, "tip": { "zh-CN": "攻秆肥，占追肥量 40%", "en-US": "Stem fertiliser, 40% of total top-dressing" } },
+        { "stage": { "zh-CN": "大喇叭口期", "en-US": "Late whorl" }, "n": 15, "p": 2, "k": 10, "tip": { "zh-CN": "攻穗肥，决定穗大粒多", "en-US": "Ear fertiliser - determines ear size and grain number" } }
+      ]
+    },
+    {
+      "crop": "水稻",
+      "stages": [
+        { "stage": { "zh-CN": "分蘖期", "en-US": "Tillering" }, "n": 8, "p": 5, "k": 6, "tip": { "zh-CN": "分蘖肥，促早发", "en-US": "Tiller fertiliser for early tillering" } },
+        { "stage": { "zh-CN": "孕穗期", "en-US": "Booting" }, "n": 6, "p": 3, "k": 8, "tip": { "zh-CN": "穗肥，看苗补施", "en-US": "Ear fertiliser, apply according to crop appearance" } },
+        { "stage": { "zh-CN": "灌浆期", "en-US": "Grain filling" }, "n": 0, "p": 0, "k": 5, "tip": { "zh-CN": "只补钾，防早衰", "en-US": "Potassium only, prevent premature senescence" } }
+      ]
+    }
+  ]
+}

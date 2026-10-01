@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-10-01",
+  "note": "农事日历：按月给出主栽作物的关键农事。用于终端端农事提醒与问答引用，具体日期请按当地气候前移或后移 7~15 天。",
+  "crops": [
+    {
+      "crop": { "zh-CN": "小麦", "en-US": "Wheat" },
+      "region": { "zh-CN": "北方冬麦区", "en-US": "Northern winter wheat region" },
+      "months": {
+        "3": { "zh-CN": ["返青期追施返青肥，亩施尿素 10~15 公斤", "防治纹枯病，重点喷茎基部", "拔节前化控防倒伏"], "en-US": ["Top-dress at greening, 10-15 kg urea per mu", "Control sheath blight, spray the stem base", "Growth regulation before jointing to prevent lodging"] },
+        "4": { "zh-CN": ["拔节孕穗期追肥，控氮增钾", "防治白粉病、锈病", "注意防治麦蚜和红蜘蛛"], "en-US": ["Top-dress at jointing/booting, less N more K", "Control powdery mildew and rust", "Watch for wheat aphids and spider mites"] },
+        "5": { "zh-CN": ["抽穗扬花期喷药防赤霉病，遇雨要补喷", "叶面喷 0.2% 磷酸二氢钾防早衰", "灌浆水要小水勤浇，避免大水漫灌"], "en-US": ["Spray for fusarium head blight at heading/flowering, repeat after rain", "Foliar 0.2% monopotassium phosphate to delay senescence", "Light frequent irrigation at grain filling"] },
+        "6": { "zh-CN": ["适时收获，蜡熟末期最合适", "收获后及时晾晒入库", "麦茬地尽早翻耕灭茬"], "en-US": ["Harvest at late dough stage", "Dry and store promptly", "Plough stubble land early"] }
+      }
+    },
+    {
+      "crop": { "zh-CN": "玉米", "en-US": "Maize" },
+      "region": { "zh-CN": "黄淮海夏玉米区", "en-US": "Huang-Huai-Hai summer maize" },
+      "months": {
+        "6": { "zh-CN": ["麦收后抢时播种，争取 6 月 15 日前完成", "种肥同播，注意种肥隔离防烧种", "播后浇蒙头水，保证出苗"], "en-US": ["Sow immediately after wheat harvest, finish before 15 June", "Seed and fertiliser together, keep them separated to avoid burn", "Irrigate after sowing for uniform emergence"] },
+        "7": { "zh-CN": ["3~5 叶期间苗定苗", "拔节期追攻秆肥", "防治玉米螟，心叶末期灌心"], "en-US": ["Thin and fix plant density at 3-5 leaves", "Top-dress at jointing", "Control corn borer by treating the whorl at late whorl stage"] },
+        "8": { "zh-CN": ["大喇叭口期追攻穗肥", "防治大斑病、小斑病", "注意防旱防涝，及时排积水"], "en-US": ["Ear fertiliser at late whorl", "Control northern and southern leaf blight", "Manage drought and waterlogging, drain ponding"] },
+        "9": { "zh-CN": ["灌浆期叶面喷肥延长功能叶寿命", "适当晚收，苞叶变黄后 7~10 天收获产量最高", "收获后秸秆还田或青贮"], "en-US": ["Foliar feed at grain filling to keep leaves functional", "Delay harvest 7-10 days after husks yellow for top yield", "Return residues to soil or ensile"] }
+      }
+    },
+    {
+      "crop": { "zh-CN": "水稻", "en-US": "Rice" },
+      "region": { "zh-CN": "长江中下游一季稻", "en-US": "Single-season rice, middle-lower Yangtze" },
+      "months": {
+        "5": { "zh-CN": ["秧田期注意防治稻飞虱和稻蓟马", "移栽前 3~5 天施送嫁肥", "适龄移栽，秧龄控制在 30 天左右"], "en-US": ["Control planthoppers and thrips in the seedbed", "Apply transplanting fertiliser 3-5 days before", "Transplant at about 30 days seedling age"] },
+        "6": { "zh-CN": ["返青后浅水勤灌促分蘖", "分蘖肥在移栽后 7~10 天施", "防治二化螟"], "en-US": ["Shallow frequent irrigation after establishment", "Tiller fertiliser 7-10 days after transplanting", "Control striped stem borer"] },
+        "7": { "zh-CN": ["分蘖末期适时晒田，控制无效分蘖", "晒田后复水追穗肥", "重点防治稻瘟病和稻飞虱"], "en-US": ["Drain at late tillering to suppress unproductive tillers", "Re-flood and apply ear fertiliser", "Focus on rice blast and planthoppers"] },
+        "8": { "zh-CN": ["破口期喷药防稻瘟病和穗颈瘟", "齐穗期再喷一次", "注意防治稻纵卷叶螟"], "en-US": ["Spray at boot breaking against blast and neck blast", "Spray again at full heading", "Control leaf folder"] },
+        "9": { "zh-CN": ["灌浆期保持干湿交替，忌过早断水", "叶面喷磷酸二氢钾促灌浆", "稻穗低头后及时排水晒田"], "en-US": ["Alternate wetting and drying at filling; do not cut water early", "Foliar monopotassium phosphate to boost filling", "Drain when panicles bend down"] }
+      }
+    },
+    {
+      "crop": { "zh-CN": "番茄", "en-US": "Tomato" },
+      "region": { "zh-CN": "设施栽培", "en-US": "Protected cultivation" },
+      "months": {
+        "3": { "zh-CN": ["定植后控水蹲苗，促根下扎", "棚温白天 25~28℃、夜间 15℃ 左右", "预防灰霉病和晚疫病"], "en-US": ["Restrict water after transplanting to encourage deep roots", "Keep greenhouse at 25-28C day, about 15C night", "Prevent grey mould and late blight"] },
+        "4": { "zh-CN": ["第一穗果坐住后开始追肥浇水", "吊蔓整枝，及时打杈", "用熊蜂或振荡器辅助授粉"], "en-US": ["Start fertigation once the first truss sets", "Train vines and remove side shoots promptly", "Use bumblebees or vibration for pollination"] },
+        "5": { "zh-CN": ["盛果期每采一次果追一次肥", "重点防治早疫病、叶霉病和白粉虱", "及时打掉下部老叶病叶"], "en-US": ["Fertigate after each harvest round at peak fruiting", "Target early blight, leaf mould and whitefly", "Remove lower old and diseased leaves"] },
+        "6": { "zh-CN": ["高温期加大通风，遮阳降温", "小水勤浇，避免中午浇水", "注意防治病毒病，及时拔除病株"], "en-US": ["Increase ventilation and shade in hot weather", "Irrigate little and often, never at midday", "Watch for virus diseases and rogue out infected plants"] }
+      }
+    }
+  ]
+}
