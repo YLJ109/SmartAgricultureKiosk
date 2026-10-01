@@ -377,86 +377,6 @@ def _reason(features: dict, plant_ratio: float, engine: str, **extra) -> dict:
     return reason
 
 
-#: 分类器采信门槛。0.70 + "top1 至少是 top2 的 1.8 倍"，两个条件同时满足才采信。
-#:
-#: 为什么定这么高（实测，不是拍脑袋）：
-#: 现用模型是在 PlantVillage 上训的，而那个数据集是**实验室受控拍摄**（纯色背景、单叶居中）。
-#: 拿本项目 4 张真实照片实测，它的 top1 全部落在 0.16~0.52：
-#:     aphid-leaf.png        0.162  -> 判成 Ceddar Apple Rust（错）
-#:     corn-leaf-spots.jpg   0.344  -> 判成 Tomato Late Blight（错）
-#:     field-4.webp          0.356  -> top2 是 0.325，前两名几乎并列（等于在猜）
-#:     field-3.webp          0.521  -> 最高的一张也没过 0.55
-#: 也就是说：**阈值一旦放松，它就会拿错病名去覆盖后面更可靠的图片理解**。
-#: 所以门槛设在"几乎不可能误报"的水平 —— 当前它在真实照片上基本不会被采信，
-#: 等换上田间数据训练的模型，这个门槛才会自然开始放行。
-_CLASSIFIER_MIN_SCORE = 0.70
-
-#: top1 至少要是 top2 的这么多倍。防止"38 类里挑一个稍微高一点"的瞎猜被当成结论。
-_CLASSIFIER_MIN_MARGIN = 1.8
-
-#: 这几类是"复用知识库方案"：白粉病在黄瓜 / 南瓜 / 樱桃上防治思路一致，
-#: 但终归不是同一作物的精确诊断，所以要如实标成参考方案。
-_CLASSIFIER_REUSED = {"Cherry with Powdery Mildew", "Squash with Powdery Mildew"}
-
-
-def _result_from_classifier(cls: dict[str, Any], lang: str, features: dict, plant_ratio: float) -> dict[str, Any] | None:
-    """本地整图分类器的判断 -> 出参。
-
-    它只回答"整片叶子像是什么病"，**不定位病灶**，所以 boxes 恒为空 ——
-    硬画一个盖满整幅图的框会让农户以为整片叶子都是病灶。
-    """
-    label = str(cls.get("label") or "")
-    score = float(cls.get("score") or 0.0)
-    top3 = cls.get("top3") or []
-    runner_up = float(top3[1]["score"]) if len(top3) > 1 else 0.0
-    margin = (score / runner_up) if runner_up > 0 else 99.0
-
-    if score < _CLASSIFIER_MIN_SCORE or margin < _CLASSIFIER_MIN_MARGIN:
-        # 不采信，继续往下降级。留下日志，方便换模型后复盘门槛是否还合适。
-        logger.debug(
-            "分类器分数不足，跳过：{} score={:.3f} margin={:.2f}", label, score, margin
-        )
-        return None
-
-    confidence = round(score * 100, 1)
-    reason = _reason(
-        features, plant_ratio, "classifier",
-        model_label=label,
-        model_confidence=round(score, 4),
-        top3=[f"{t['label']} {t['score']:.2f}" for t in (cls.get("top3") or [])],
-    )
-
-    key = str(cls.get("key") or "")
-    entry = knowledge.class_index().get(key) if key else None
-    if not entry:
-        # 认得出病名、但知识库还没有对应条目：只报大类 + 通用建议，不硬套病名开药
-        result = _category_only_result("disease", lang, reason, features, [])
-        result["confidence"] = confidence
-        result["severity"] = _severity_of(score)
-        result["engine"] = "classifier"
-        result["matched"] = False
-        result["is_reference"] = True
-        return result
-
-    localized = knowledge.localize_class(entry, lang)
-    return {
-        "category": entry.get("category", "disease"),
-        "class_key": key,
-        "name": knowledge.pick(localized.get("name"), lang),
-        "confidence": confidence,
-        "severity": localized.get("severity", "medium"),
-        "symptoms": knowledge.pick_list(localized.get("symptoms"), lang),
-        "cause": knowledge.pick(localized.get("cause"), lang),
-        "treatment": knowledge.pick_list(localized.get("treatment"), lang),
-        "pesticide": knowledge.pick_list(localized.get("pesticide"), lang),
-        "boxes": [],
-        "engine": "classifier",
-        "reason": reason,
-        "matched": True,
-        "is_reference": label in _CLASSIFIER_REUSED,
-    }
-
-
 def _result_from_model(hit, engine: str, lang: str, features: dict, plant_ratio: float) -> dict[str, Any] | None:
     """本地 ONNX 模型的检出 -> 出参。
 
@@ -745,22 +665,7 @@ def analyze(image_path: str | Path, lang: str = "zh-CN") -> dict[str, Any]:
                 logger.info("{} 命中：{} conf={:.3f}", engine, hit.label, hit.confidence)
                 return result
 
-    # ---- 3 级：本地整图分类器（离线、比联网快一个数量级，但不定位病灶）----
-    # 排在图片理解之前：能本地离线拿到的结论，没理由先去联网等几秒。
-    if image_bgr is not None:
-        from app.core.classifier import classifier  # 延迟导入，避免与 detector 的加载顺序耦合
-
-        cls = classifier.classify(image_bgr)
-        if cls:
-            result = _result_from_classifier(cls, lang, features, plant_ratio)
-            if result:
-                logger.info(
-                    "分类器命中：{} score={:.3f} -> key={}",
-                    cls.get("label"), cls.get("score") or 0.0, cls.get("key") or "(知识库暂无)",
-                )
-                return result
-
-    # ---- 4 级：图片理解（智谱 GLM-4V，需联网）----
+    # ---- 3 级：图片理解（智谱 GLM-4V，需联网）----
     vision = llm.vision_analyze_sync(image_path, lang)
     if vision:
         result = _result_from_vision(vision, lang, features, plant_ratio)

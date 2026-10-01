@@ -16,7 +16,6 @@ from sqlalchemy import select
 
 from app.api import admin, auth, chat, history, mobile, recognize, stats, system
 from app.config import settings
-from app.core.classifier import classifier
 from app.core.detector import detector
 from app.core.exceptions import register_exception_handlers
 from app.core.llm import PROVIDER_LABELS
@@ -75,7 +74,6 @@ async def lifespan(_: FastAPI):
     # 留到第一次识别时才懒加载的话，第一个来用的农户要对着"识别中"干等；
     # 放后台做，不阻塞启动，等真有人用时模型已经是热的。
     asyncio.create_task(run_in_threadpool(detector.warmup))
-    asyncio.create_task(run_in_threadpool(classifier.warmup))
 
     logger.info("{} v{} 启动完成，端口 {}", settings.app_name, VERSION, settings.port)
     yield
